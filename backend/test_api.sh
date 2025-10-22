@@ -25,9 +25,9 @@ curl -X POST "${API_URL}" \
     -H "accept: application/json" \
     -H "Content-Type: multipart/form-data" \
     -F "image=@${IMAGE_PATH}" \
-    -F "brand_name=Jack Daniel's" \
+    -F "brand_name=Old Tom Distillery" \
     -F "product_type=Whiskey" \
-    -F "alcohol_content=40" \
+    -F "alcohol_content=45" \
     -F "net_contents=750 mL" \
     -F "use_advanced_ocr=false" \
     | json_pp
