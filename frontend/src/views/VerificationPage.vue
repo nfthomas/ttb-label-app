@@ -1,7 +1,7 @@
 <!-- VerificationPage.vue -->
 <template>
-  <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-2xl mx-auto">
+  <div class="container">
+    <div class="center">
       <Card>
         <template #title>
           <h1 class="text-2xl font-bold text-gray-900">
@@ -9,35 +9,37 @@
           </h1>
         </template>
         <template #content>
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <div class="space-y-4">
+          <form @submit.prevent="handleSubmit" class="form">
+            <div class="form-section">
               <!-- Brand Name -->
-              <div class="flex flex-col gap-2">
-                <label for="brandName">Brand Name</label>
+              <div class="form-group">
+                <label for="brandName" class="label">Brand Name</label>
                 <InputText
                   id="brandName"
                   v-model="formData.brandName"
                   placeholder="Enter brand name"
+                  class="full-width large-input"
                   :class="{ 'p-invalid': errors.brandName }"
                 />
                 <small v-if="errors.brandName" class="p-error">{{ errors.brandName }}</small>
               </div>
 
               <!-- Product Type -->
-              <div class="flex flex-col gap-2">
-                <label for="productType">Product Class/Type</label>
+              <div class="form-group">
+                <label for="productType" class="label">Product Class/Type</label>
                 <InputText
                   id="productType"
                   v-model="formData.productType"
                   placeholder="e.g., Kentucky Straight Bourbon Whiskey, IPA, Vodka"
+                  class="full-width large-input"
                   :class="{ 'p-invalid': errors.productType }"
                 />
                 <small v-if="errors.productType" class="p-error">{{ errors.productType }}</small>
               </div>
 
               <!-- Alcohol Content -->
-              <div class="flex flex-col gap-2">
-                <label for="alcoholContent">ABV %</label>
+              <div class="form-group">
+                <label for="alcoholContent" class="label">ABV %</label>
                 <InputNumber
                   id="alcoholContent"
                   v-model="formData.alcoholContent"
@@ -47,6 +49,7 @@
                   :min="0"
                   :max="100"
                   placeholder="0.0"
+                  class="full-width large-input"
                   :class="{ 'p-invalid': errors.alcoholContent }"
                   suffix=" %"
                 />
@@ -54,19 +57,20 @@
               </div>
 
               <!-- Net Contents -->
-              <div class="flex flex-col gap-2">
-                <label for="netContents">Net Contents</label>
+              <div class="form-group">
+                <label for="netContents" class="label">Net Contents</label>
                 <InputText
                   id="netContents"
                   v-model="formData.netContents"
                   placeholder="e.g., 750 mL, 12 fl oz"
+                  class="full-width large-input"
                 />
               </div>
             </div>
 
             <!-- Image Upload Section -->
-            <div class="flex flex-col gap-2">
-              <label>Label Image</label>
+            <div class="form-group">
+              <label class="label">Label Image</label>
               <FileUpload
                 name="labelImage"
                 @select="handleFileSelect"
@@ -75,6 +79,7 @@
                 :multiple="false"
                 accept="image/jpeg,image/png"
                 :maxFileSize="10000000"
+                class="full-width file-upload"
                 :class="{ 'p-invalid': errors.image }"
               >
                 <template #empty>
@@ -91,7 +96,7 @@
             <Button
               type="submit"
               label="Verify Label"
-              class="w-full"
+              class="submit-button"
               :loading="isLoading"
               :disabled="!isFormValid"
             />
