@@ -1,6 +1,7 @@
 <!-- VerificationPage.vue -->
 <template>
   <div class="container">
+    <Toast position="top-right" />
     <div class="center">
       <Card>
         <template #title>
@@ -104,14 +105,13 @@
         </template>
       </Card>
 
-      <!-- Results Section (if needed) -->
-      <div v-if="verificationResults" class="mt-6">
-        <Card>
-          <template #content>
-            <!-- Add verification results display here -->
-          </template>
-        </Card>
-      </div>
+      <Transition name="fade">
+        <VerificationResults
+          v-if="verificationResults"
+          :results="verificationResults"
+          class="mt-6"
+        />
+      </Transition>
     </div>
   </div>
 </template>
@@ -120,6 +120,8 @@
 import { ref, computed, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { verifyLabel } from '@/services/api'
+import VerificationResults from '@/components/VerificationResults.vue'
+import Toast from 'primevue/toast'
 
 const toast = useToast();
 
@@ -210,22 +212,113 @@ const handleSubmit = async () => {
   }
 
   isLoading.value = true
+  verificationResults.value = null // Clear previous results
+  
   try {
     const data = new FormData()
-    data.append('brandName', formData.value.brandName)
-    data.append('productType', formData.value.productType)
-    data.append('alcoholContent', formData.value.alcoholContent)
-    data.append('netContents', formData.value.netContents)
+    data.append('brand_name', formData.value.brandName)
+    data.append('product_type', formData.value.productType)
+    data.append('alcohol_content', formData.value.alcoholContent)
+    data.append('net_contents', formData.value.netContents)
     data.append('image', selectedFile.value)
     
-    verificationResults.value = await verifyLabel(data)
-    toast.add({ severity: 'success', summary: 'Success', detail: 'Label submitted for verification!', life: 3000 });
-    // Handle success
+    const response = await verifyLabel(data)
+    verificationResults.value = {
+      success: response.success,
+      fields: {
+        brandName: {
+          value: response.results?.brandName?.value,
+          expected: formData.value.brandName,
+          matches: response.results?.brandName?.matches
+        },
+        productType: {
+          value: response.results?.productType?.value,
+          expected: formData.value.productType,
+          matches: response.results?.productType?.matches
+        },
+        alcoholContent: {
+          value: response.results?.alcoholContent?.value,
+          expected: formData.value.alcoholContent,
+          matches: response.results?.alcoholContent?.matches
+        },
+        netContents: {
+          value: response.results?.netContents?.value,
+          expected: formData.value.netContents,
+          matches: response.results?.netContents?.matches
+        }
+      },
+      error: response.error,
+      ocrText: response.ocrText
+    }
+
+    const toastMessage = verificationResults.value.success
+      ? { severity: 'success', summary: 'Verification Successful', detail: 'All fields match the label image.' }
+      : { severity: 'warn', summary: 'Verification Failed', detail: 'Some fields do not match the label image.' }
+    
+    toast.add({ ...toastMessage, life: 5000 })
   } catch (error) {
-    errors.value.submit = error.message
-    toast.add({ severity: 'error', summary: 'Submission Error', detail: error.message || 'An unexpected error occurred.', life: 3000 });
+    verificationResults.value = {
+      success: false,
+      error: error.message || 'An unexpected error occurred during verification.',
+      fields: {}
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail: error.message || 'An unexpected error occurred.', life: 5000 })
   } finally {
     isLoading.value = false
   }
 }
 </script>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.center {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.submit-button {
+  margin-top: 1rem;
+}
+</style>
