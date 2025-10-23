@@ -1,7 +1,9 @@
 from fastapi import APIRouter, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
-from typing import Optional
+from typing import Optional, Dict
 import logging
+from PIL import Image
+import io
 
 from app.models.verification import LabelData, VerificationResult
 from app.services.ocr_service import extract_text_from_image
@@ -13,14 +15,34 @@ logger = logging.getLogger(__name__)
 # Maximum file size (5MB)
 MAX_FILE_SIZE = 5 * 1024 * 1024
 
-@router.post("/verify", response_model=VerificationResult)
+class VerificationError(Exception):
+    """Custom exception for verification-related errors."""
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+
+def get_image_info(image_data: bytes) -> Dict:
+    """Extract image dimensions and file size."""
+    try:
+        with Image.open(io.BytesIO(image_data)) as img:
+            return {
+                "width": img.width,
+                "height": img.height,
+                "format": img.format,
+                "file_size": len(image_data) / 1024,  # Size in KB
+            }
+    except Exception as e:
+        logger.error(f"Error getting image info: {str(e)}")
+        return {}
+
+@router.post("/verify")
 async def verify_label_image(
     image: UploadFile,
     brand_name: str = Form(...),
     product_type: str = Form(...),
+    net_contents: str = Form(...),
     alcohol_content: float = Form(...),
-    net_contents: Optional[str] = Form(None),
-    use_advanced_ocr: bool = Form(False)
+    fuzzy_match: bool = Form(False)
 ) -> VerificationResult:
     """
     Verify alcohol label image against provided form data.
@@ -38,24 +60,32 @@ async def verify_label_image(
     Raises:
         HTTPException: For invalid files or processing errors
     """
-    # Validate file type
-    if image.content_type not in ["image/jpeg", "image/png"]:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid file type. Only JPEG and PNG images are allowed."
-        )
-    
-    # Read file content
-    contents = await image.read()
-    
-    # Check file size
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail="File size exceeds maximum limit of 5MB"
-        )
-    
     try:
+        # Validate file type
+        if image.content_type not in ["image/jpeg", "image/png"]:
+            raise VerificationError(
+                status_code=400,
+                detail="Invalid file type. Only JPEG and PNG images are allowed."
+            )
+        
+        # Read file content
+        contents = await image.read()
+        
+        # Check file size
+        if len(contents) > MAX_FILE_SIZE:
+            raise VerificationError(
+                status_code=400,
+                detail="File size exceeds maximum limit of 5MB"
+            )
+        
+        # Get image information
+        image_info = get_image_info(contents)
+        if not image_info:
+            raise VerificationError(
+                status_code=422,
+                detail="Unable to process image. Please ensure it is a valid JPEG or PNG file."
+            )
+            
         # Create form data model
         form_data = LabelData(
             brand_name=brand_name,
@@ -64,16 +94,37 @@ async def verify_label_image(
             net_contents=net_contents
         )
         
-        # Extract text from image using optional advanced processing
-        ocr_text = extract_text_from_image(contents, use_advanced=use_advanced_ocr)
+        # Extract text from image
+        try:
+            ocr_text = extract_text_from_image(contents)
+            if not ocr_text.strip():
+                raise VerificationError(
+                    status_code=422,
+                    detail="No text could be detected in the image. Please ensure the image is clear and contains readable text."
+                )
+        except Exception as e:
+            logger.error(f"OCR processing error: {str(e)}")
+            raise VerificationError(
+                status_code=422,
+                detail="Error processing image text. Please ensure the image is clear and properly oriented."
+            )
         
         # Verify label data
-        result = verify_label(form_data, ocr_text)
-    
-        return result
-        
+        try:
+            result = verify_label(form_data, ocr_text, fuzzy_match=fuzzy_match)
+            result.image_info = image_info
+            return result
+        except ValueError as e:
+            raise VerificationError(status_code=422, detail=str(e))
+            
+    except VerificationError as e:
+        logger.error(f"Verification error: {e.detail}")
+        raise HTTPException(
+            status_code=e.status_code,
+            detail=e.detail
+        )
     except ValueError as e:
-        logger.error(f"Error processing image: {str(e)}")
+        logger.error(f"Validation error: {str(e)}")
         raise HTTPException(
             status_code=400,
             detail=str(e)
@@ -82,5 +133,5 @@ async def verify_label_image(
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="An unexpected error occurred while processing the image"
+            detail="An unexpected error occurred while processing the image. Please try again."
         )

@@ -1,106 +1,246 @@
 import re
-from typing import Tuple
+import difflib
+from typing import Tuple, Dict, List, Optional, Set
 from app.models.verification import LabelData, VerificationResult
+
+FUZZY_MATCH_THRESHOLD = 0.8
+CLOSE_MATCH_THRESHOLD = 0.5
 
 def normalize_text(text: str) -> str:
     """Normalize text for comparison by converting to lowercase and removing extra whitespace."""
     return ' '.join(text.lower().split())
 
-def check_alcohol_content(form_value: float, ocr_text: str) -> bool:
+def get_similarity_ratio(str1: str, str2: str) -> float:
+    """Calculate similarity ratio between two strings using difflib."""
+    return difflib.SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
+
+def normalize_ocr_text(text: str) -> Set[str]:
+    """
+    Normalize OCR text by handling common OCR mistakes.
+
+    Substitute letter->number and number->letter
+    """
+    # Handle common OCR mistakes
+    replacements = {
+        'o': '0', '0': 'o',
+        'i': '1', '1': 'i',
+        's': '5', '5': 's'
+    }
+    normalized = text.lower()
+    
+    # Try each replacement and keep track of variants
+    variants = {normalized}
+    for old, new in replacements.items():
+        for existing in list(variants):
+            if old in existing:
+                variants.add(existing.replace(old, new))
+    
+    return variants
+
+
+def find_close_matches(target: str, text: str, threshold: float = CLOSE_MATCH_THRESHOLD) -> List[str]:
+    """Find close matches in text using fuzzy matching with a sliding window."""
+    words = text.split()
+    window_size = len(target.split())
+    matches = []
+    
+    for i in range(len(words) - window_size + 1):
+        window = ' '.join(words[i:i + window_size])
+        similarity = get_similarity_ratio(target, window)
+        if similarity >= threshold:
+            matches.append((window, similarity))
+    
+    # Sort matches by closest similarity and return the matched strings
+    # return [match[0] for match in sorted(matches, key=lambda x: x[1], reverse=True)]
+    return [match for match, _ in sorted(matches, key=lambda x: x[1], reverse=True)]
+
+def check_alcohol_content(form_value: float, normalized_ocr: str) -> Tuple[bool, Optional[str]]:
     """
     Check if the alcohol content appears in the OCR text.
-    Handles variations like "45% Alc./Vol." or "Alc 45% by Vol".
+    Returns (success, closest_match).
     """
-    # Convert float to string without trailing zeros
     content_str = f"{form_value:g}"
     patterns = [
         rf"{content_str}\s*%",  # 45% or 45 %
-        rf"{content_str}\s*%\s*alc\.?\s*/\s*vol\.?",  # 45% Alc./Vol. or 45 % Alc/Vol
-        rf"alc\.?\s*{content_str}\s*%\s*by\s*vol\.?"  # Alc 45% by Vol or Alc. 45 % by Vol.
+        rf"{content_str}\s*%\s*alc\.?\s*/\s*vol\.?",  # 45% Alc./Vol.
+        rf"alc\.?\s*{content_str}\s*%\s*by\s*vol\.?"  # Alc 45% by Vol
     ]
-    normalized_text = normalize_text(ocr_text)
-    return any(re.search(pattern, normalized_text) for pattern in patterns)
 
-def check_net_contents(form_value: str, ocr_text: str) -> bool:
+    normalized_text = normalized_ocr
+    
+    # Check for exact matches
+    if any(re.search(pattern, normalized_text) for pattern in patterns):
+        return True, None
+    
+    # Look for close matches
+    alcohol_pattern = r'\d+(?:\.\d+)?\s*%(?:\s*alc\.?\s*/\s*vol\.?|\s*by\s*vol\.?)?'
+    matches = re.findall(alcohol_pattern, normalized_text)
+    if matches:
+        closest = matches[0]
+        return False, f"Found {closest} (expected {content_str}%)"
+    
+    return False, None
+
+def check_brand_name(form_value: str, normalized_ocr: str, normalized_variants: Set[str], fuzzy_match: bool) -> Tuple[bool, Optional[str]]:
+    """
+    Check if the brand name appears in the OCR text.
+    Returns (success, closest_match).
+    """
+    brand_name_norm = normalize_text(form_value)
+
+    if fuzzy_match:
+        similarity = max(get_similarity_ratio(brand_name_norm, variant) for variant in normalized_variants)
+        success = similarity >= FUZZY_MATCH_THRESHOLD
+        if not success:
+            closest = find_close_matches(brand_name_norm, normalized_ocr)
+            return False, closest[0] if closest else None
+        return True, None
+    else:
+        success = any(brand_name_norm in variant for variant in normalized_variants)
+        return success, None
+
+def check_product_type(form_value: str, normalized_ocr: str, normalized_variants: Set[str], fuzzy_match: bool) -> Tuple[bool, Optional[str]]:
+    """
+    Check if the product type appears in the OCR text.
+    Returns (success, closest_match).
+    """
+    product_type_norm = normalize_text(form_value)
+
+    if fuzzy_match:
+        similarity = max(get_similarity_ratio(product_type_norm, variant) for variant in normalized_variants)
+        success = similarity >= FUZZY_MATCH_THRESHOLD
+        if not success:
+            closest = find_close_matches(product_type_norm, normalized_ocr)
+            return False, closest[0] if closest else None
+        return True, None
+    else:
+        success = any(product_type_norm in variant for variant in normalized_variants)
+        return success, None
+
+def check_government_warning(normalized_ocr: str) -> Tuple[bool, Optional[str]]:
+    """
+    Check if the government warning appears in the OCR text.
+    Returns (success, closest_match).
+    """
+    success = 'government warning' in normalized_ocr
+    if not success:
+        closest = find_close_matches('government warning', normalized_ocr, threshold=CLOSE_MATCH_THRESHOLD)
+        return False, closest[0] if closest else None
+    return True, None
+
+def check_net_contents(form_value: str, normalized_ocr: str) -> Tuple[bool, Optional[str]]:
     """
     Check if the net contents volume appears in the OCR text.
-    Handles variations like "750mL", "750 mL", "750 ml".
+    Returns (success, closest_match).
     """
     if not form_value:
-        return True
+        return True, None
         
     # Extract number and unit from form value
     match = re.match(r'(\d+)\s*([a-zA-Z]+)', form_value)
     if not match:
-        return False
+        return False, None
         
-    number, unit = match.groups()
-    unit = unit.lower()
+    form_num, form_unit = match.groups()
+    form_unit = form_unit.lower()
+    
+    normalized_text = normalized_ocr
     
     # Create patterns for different format variations
     patterns = [
-        rf"{number}\s*{unit}",  # 750ml
-        rf"{number}\s*{unit[0]}{unit[1:]}",  # 750mL
-        rf"{number}\s*{unit.upper()}"  # 750ML
+        rf"{form_num}\s*{form_unit}",  # 750ml
+        rf"{form_num}\s*{form_unit[0]}{form_unit[1:]}",  # 750mL
+        rf"{form_num}\s*{form_unit.upper()}"  # 750ML
     ]
     
-    normalized_text = normalize_text(ocr_text)
-    return any(re.search(pattern, normalized_text) for pattern in patterns)
+    # Check for exact matches
+    if any(re.search(pattern, normalized_text) for pattern in patterns):
+        return True, None
+    
+    # Look for close matches
+    volume_pattern = r'\d+(?:\.\d+)?\s*(?:ml|mL|oz|fl\.?\s*oz)'
+    matches = re.findall(volume_pattern, normalized_text)
+    if matches:
+        closest = matches[0]
+        return False, f"Found {closest} (expected {form_value})"
+    
+    return False, None
 
-def verify_label(form_data: LabelData, ocr_text: str) -> VerificationResult:
+def verify_label(form_data: LabelData, ocr_text: str, fuzzy_match: bool = False) -> VerificationResult:
     """
     Verify if the form data matches the OCR text from the label image.
-    
+
     Args:
-        form_data: LabelData model containing expected values
-        ocr_text: Text extracted from the image using OCR
-        
-    Returns:
-        VerificationResult with detailed matching information
+        form_data: The form data to verify against
+        ocr_text: The OCR text from the image
+        fuzzy_match: Whether to use fuzzy matching (default: False)
     """
+    if not ocr_text.strip():
+        raise ValueError("No text detected in image")
+
     normalized_ocr = normalize_text(ocr_text)
+    normalized_variants = normalize_ocr_text(ocr_text)
     matches = {}
     mismatches = []
-    
-    # Check brand name
-    matches['brand_name'] = normalize_text(form_data.brand_name) in normalized_ocr
-    if not matches['brand_name']:
+    close_matches = {}
+
+    # Check brand name, allows for variants
+    success, closest_match = check_brand_name(form_data.brand_name, normalized_ocr, normalized_variants, fuzzy_match)
+    matches['brand_name'] = success
+    if not success:
         mismatches.append('brand_name')
-    
-    # Check product type
-    matches['product_type'] = normalize_text(form_data.product_type) in normalized_ocr
-    if not matches['product_type']:
+        if closest_match:
+            close_matches['brand_name'] = [closest_match]
+
+    # Check product type, allows for variants
+    success, closest_match = check_product_type(form_data.product_type, normalized_ocr, normalized_variants, fuzzy_match)
+    matches['product_type'] = success
+    if not success:
         mismatches.append('product_type')
-    
+        if closest_match:
+            close_matches['product_type'] = [closest_match]
+
     # Check alcohol content
-    matches['alcohol_content'] = check_alcohol_content(form_data.alcohol_content, ocr_text)
-    if not matches['alcohol_content']:
+    success, closest_match = check_alcohol_content(form_data.alcohol_content, normalized_ocr)
+    matches['alcohol_content'] = success
+    if not success:
         mismatches.append('alcohol_content')
-    
+        if closest_match:
+            close_matches['alcohol_content'] = [closest_match]
+
     # Check net contents if provided
     if form_data.net_contents:
-        matches['net_contents'] = check_net_contents(form_data.net_contents, ocr_text)
-        if not matches['net_contents']:
+        success, closest_match = check_net_contents(form_data.net_contents, normalized_ocr)
+        matches['net_contents'] = success
+        if not success:
             mismatches.append('net_contents')
-    
+            if closest_match:
+                close_matches['net_contents'] = [closest_match]
+
     # Check government warning
-    matches['government_warning'] = 'government warning' in normalized_ocr
-    if not matches['government_warning']:
+    success, closest_match = check_government_warning(normalized_ocr)
+    matches['government_warning'] = success
+    if not success:
         mismatches.append('government_warning')
-    
-    # Calculate overall success
-    success = len(mismatches) == 0
-    
+        if closest_match:
+            close_matches['government_warning'] = [closest_match]
+
     # Generate human-readable message
-    if success:
+    if not mismatches:
         message = "All fields successfully verified on the label"
     else:
-        message = f"Verification failed for: {', '.join(mismatches)}"
-    
+        message = "Verification failed for: " + ", ".join(
+            f"{field} ({close_matches[field][0]})" if field in close_matches else field
+            for field in mismatches
+        )
+
+    label_success = len(mismatches) == 0
     return VerificationResult(
-        success=success,
+        success=label_success,
         matches=matches,
         mismatches=mismatches,
         raw_ocr_text=ocr_text,
-        message=message
+        message=message,
+        close_matches=close_matches,
+        image_info=None
     )

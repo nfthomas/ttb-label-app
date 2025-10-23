@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 class LabelData(BaseModel):
     brand_name: str = Field(..., description="Name of the alcohol brand")
@@ -13,3 +13,11 @@ class VerificationResult(BaseModel):
     mismatches: List[str] = Field(..., description="List of fields that failed to match")
     raw_ocr_text: str = Field(..., description="Raw text extracted from the image")
     message: str = Field(..., description="Human-readable result message")
+    close_matches: Dict[str, List[str]] = Field(
+        default_factory=dict,
+        description="Close matches found for failed verifications"
+    )
+    image_info: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Information about the processed image (dimensions, file size)"
+    )
