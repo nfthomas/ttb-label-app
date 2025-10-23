@@ -223,32 +223,33 @@ const handleSubmit = async () => {
     data.append('image', selectedFile.value)
     
     const response = await verifyLabel(data)
+
     verificationResults.value = {
       success: response.success,
       fields: {
         brandName: {
-          value: response.results?.brandName?.value,
+          value: response.matches.brand_name ? formData.value.brandName : undefined,
           expected: formData.value.brandName,
-          matches: response.results?.brandName?.matches
+          matches: response.matches.brand_name
         },
         productType: {
-          value: response.results?.productType?.value,
+          value: response.matches.product_type ? formData.value.productType : undefined,
           expected: formData.value.productType,
-          matches: response.results?.productType?.matches
+          matches: response.matches.product_type
         },
         alcoholContent: {
-          value: response.results?.alcoholContent?.value,
+          value: response.matches.alcohol_content ? formData.value.alcoholContent : undefined,
           expected: formData.value.alcoholContent,
-          matches: response.results?.alcoholContent?.matches
+          matches: response.matches.alcohol_content
         },
         netContents: {
-          value: response.results?.netContents?.value,
+          value: response.matches.net_contents ? formData.value.netContents : undefined,
           expected: formData.value.netContents,
-          matches: response.results?.netContents?.matches
+          matches: response.matches.net_contents
         }
       },
-      error: response.error,
-      ocrText: response.ocrText
+      error: response.detail,
+      ocrText: response.raw_ocr_text
     }
 
     const toastMessage = verificationResults.value.success

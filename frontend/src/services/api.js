@@ -18,7 +18,7 @@ export const verifyLabel = async (formData) => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      throw new Error(error.response.data.message || 'Verification failed');
+      throw new Error(error.response.data.detail || 'Verification failed');
     }
     throw new Error('Network error occurred');
   }
