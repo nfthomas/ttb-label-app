@@ -1,0 +1,22 @@
+{
+  "test_id": "06_partial_occlusion",
+  "description": "Partially obscured label (edge case)",
+  "expected_ocr": {
+    "brand_name": "Riverside Rum",
+    "product_type": "Spiced Rum",
+    "alcohol_content": 35.0,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Riverside Rum",
+    "product_type": "Spiced Rum",
+    "alcohol_content": 35.0,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "medium",
+    "rotation": 15,
+    "opacity": 0.7
+  }
+}

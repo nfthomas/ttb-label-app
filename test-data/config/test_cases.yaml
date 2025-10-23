@@ -1,0 +1,145 @@
+# Test Cases for Alcohol Label Validation
+# Maps to LabelData model fields: brand_name, product_type, alcohol_content, net_contents
+
+test_cases:
+  - id: "01_perfect_match"
+    description: "Perfect match - all fields present and valid"
+    label_data:
+      brand_name: "Old Tom Distillery"
+      product_type: "Kentucky Straight Bourbon Whiskey"
+      alcohol_content: 45.0
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+    expected_ocr:
+      brand_name: "Old Tom Distillery"
+      product_type: "Kentucky Straight Bourbon Whiskey"
+      alcohol_content: 45.0
+      net_contents: "750 mL"
+
+  - id: "02_mismatch_brand"
+    description: "Brand name mismatch - OCR will read different brand than form submission"
+    label_data:
+      brand_name: "Heritage Spirits Company"
+      product_type: "Kentucky Straight Bourbon Whiskey"
+      alcohol_content: 45.0
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+    expected_ocr:
+      brand_name: "Heritage Spirits Company"
+      product_type: "Kentucky Straight Bourbon Whiskey"
+      alcohol_content: 45.0
+      net_contents: "750 mL"
+    form_submission:
+      brand_name: "Old Tom Distillery"  # Intentional mismatch
+      product_type: "Kentucky Straight Bourbon Whiskey"
+      alcohol_content: 45.0
+      net_contents: "750 mL"
+
+  - id: "03_missing_information"
+    description: "Missing ABV and government warning"
+    label_data:
+      brand_name: "Craft Brewery"
+      product_type: "IPA"
+      alcohol_content: null  # Not displayed on label
+      net_contents: "355 mL"
+    display_options:
+      show_government_warning: false
+      show_alcohol_content: false
+      quality: "high"
+    expected_ocr:
+      brand_name: "Craft Brewery"
+      product_type: "IPA"
+      alcohol_content: null
+      net_contents: "355 mL"
+
+  - id: "04_different_abv"
+    description: "ABV mismatch between label and form"
+    label_data:
+      brand_name: "Coastal Wine Co"
+      product_type: "Chardonnay"
+      alcohol_content: 13.5
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+    expected_ocr:
+      brand_name: "Coastal Wine Co"
+      product_type: "Chardonnay"
+      alcohol_content: 13.5
+      net_contents: "750 mL"
+    form_submission:
+      brand_name: "Coastal Wine Co"
+      product_type: "Chardonnay"
+      alcohol_content: 12.0  # Intentional mismatch
+      net_contents: "750 mL"
+
+  - id: "05_low_quality_blurry"
+    description: "Low quality/blurry label to test OCR failure handling"
+    label_data:
+      brand_name: "Mountain Vodka"
+      product_type: "Premium Vodka"
+      alcohol_content: 40.0
+      net_contents: "1 L"
+    display_options:
+      show_government_warning: true
+      quality: "low"  # Will apply blur filter
+      blur_amount: 5
+    expected_ocr:
+      brand_name: null  # OCR likely to fail
+      product_type: null
+      alcohol_content: null
+      net_contents: null
+
+  - id: "06_partial_occlusion"
+    description: "Partially obscured label (edge case)"
+    label_data:
+      brand_name: "Riverside Rum"
+      product_type: "Spiced Rum"
+      alcohol_content: 35.0
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "medium"
+      rotation: 15  # Slightly rotated
+      opacity: 0.7  # Slightly faded
+    expected_ocr:
+      brand_name: "Riverside Rum"
+      product_type: "Spiced Rum"
+      alcohol_content: 35.0
+      net_contents: "750 mL"
+
+  - id: "07_special_characters"
+    description: "Brand name with special characters and accents"
+    label_data:
+      brand_name: "Château d'Étoile"
+      product_type: "Rosé Wine"
+      alcohol_content: 12.5
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+    expected_ocr:
+      brand_name: "Château d'Étoile"
+      product_type: "Rosé Wine"
+      alcohol_content: 12.5
+      net_contents: "750 mL"
+
+  - id: "08_missing_net_contents"
+    description: "Missing volume information"
+    label_data:
+      brand_name: "Artisan Gin"
+      product_type: "London Dry Gin"
+      alcohol_content: 42.0
+      net_contents: null
+    display_options:
+      show_government_warning: true
+      quality: "high"
+    expected_ocr:
+      brand_name: "Artisan Gin"
+      product_type: "London Dry Gin"
+      alcohol_content: 42.0
+      net_contents: null

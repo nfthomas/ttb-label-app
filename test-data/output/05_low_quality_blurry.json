@@ -1,0 +1,21 @@
+{
+  "test_id": "05_low_quality_blurry",
+  "description": "Low quality/blurry label to test OCR failure handling",
+  "expected_ocr": {
+    "brand_name": null,
+    "product_type": null,
+    "alcohol_content": null,
+    "net_contents": null
+  },
+  "form_submission": {
+    "brand_name": "Mountain Vodka",
+    "product_type": "Premium Vodka",
+    "alcohol_content": 40.0,
+    "net_contents": "1 L"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "low",
+    "blur_amount": 5
+  }
+}

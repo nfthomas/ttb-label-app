@@ -1,0 +1,20 @@
+{
+  "test_id": "01_perfect_match",
+  "description": "Perfect match - all fields present and valid",
+  "expected_ocr": {
+    "brand_name": "Old Tom Distillery",
+    "product_type": "Kentucky Straight Bourbon Whiskey",
+    "alcohol_content": 45.0,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Old Tom Distillery",
+    "product_type": "Kentucky Straight Bourbon Whiskey",
+    "alcohol_content": 45.0,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "test_id": "08_missing_net_contents",
+  "description": "Missing volume information",
+  "expected_ocr": {
+    "brand_name": "Artisan Gin",
+    "product_type": "London Dry Gin",
+    "alcohol_content": 42.0,
+    "net_contents": null
+  },
+  "form_submission": {
+    "brand_name": "Artisan Gin",
+    "product_type": "London Dry Gin",
+    "alcohol_content": 42.0,
+    "net_contents": null
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high"
+  }
+}

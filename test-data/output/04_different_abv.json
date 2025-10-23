@@ -1,0 +1,20 @@
+{
+  "test_id": "04_different_abv",
+  "description": "ABV mismatch between label and form",
+  "expected_ocr": {
+    "brand_name": "Coastal Wine Co",
+    "product_type": "Chardonnay",
+    "alcohol_content": 13.5,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Coastal Wine Co",
+    "product_type": "Chardonnay",
+    "alcohol_content": 12.0,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high"
+  }
+}

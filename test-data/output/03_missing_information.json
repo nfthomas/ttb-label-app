@@ -1,0 +1,21 @@
+{
+  "test_id": "03_missing_information",
+  "description": "Missing ABV and government warning",
+  "expected_ocr": {
+    "brand_name": "Craft Brewery",
+    "product_type": "IPA",
+    "alcohol_content": null,
+    "net_contents": "355 mL"
+  },
+  "form_submission": {
+    "brand_name": "Craft Brewery",
+    "product_type": "IPA",
+    "alcohol_content": null,
+    "net_contents": "355 mL"
+  },
+  "display_options": {
+    "show_government_warning": false,
+    "show_alcohol_content": false,
+    "quality": "high"
+  }
+}
