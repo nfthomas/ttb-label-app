@@ -9,16 +9,14 @@ def normalize_text(text: str) -> str:
 def check_alcohol_content(form_value: float, ocr_text: str) -> bool:
     """
     Check if the alcohol content appears in the OCR text.
-    Handles variations like "45%" or "45 Alc./Vol.".
+    Handles variations like "45% Alc./Vol." or "Alc 45% by Vol".
     """
     # Convert float to string without trailing zeros
     content_str = f"{form_value:g}"
     patterns = [
-        rf"{content_str}\s*%",  # 45%
-        rf"{content_str}%?\s*alc\.?",  # 45% Alc. or 45 Alc
-        rf"{content_str}%?\s*vol\.?",  # 45% Vol. or 45 Vol
-        rf"{content_str}%?\s*alc\.?\s*/\s*vol\.?",  # 45% Alc./Vol. or 45 Alc/Vol
-        rf"{content_str}\s*alc\.?\s*/\s*vol\.?",  # 45 Alc./Vol. or 45 Alc/Vol
+        rf"{content_str}\s*%",  # 45% or 45 %
+        rf"{content_str}\s*%\s*alc\.?\s*/\s*vol\.?",  # 45% Alc./Vol. or 45 % Alc/Vol
+        rf"alc\.?\s*{content_str}\s*%\s*by\s*vol\.?"  # Alc 45% by Vol or Alc. 45 % by Vol.
     ]
     normalized_text = normalize_text(ocr_text)
     return any(re.search(pattern, normalized_text) for pattern in patterns)
