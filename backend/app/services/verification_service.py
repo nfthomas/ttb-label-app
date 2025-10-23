@@ -1,5 +1,6 @@
 import re
 import difflib
+import logging
 from typing import Tuple, Dict, List, Optional, Set
 from app.models.verification import LabelData, VerificationResult
 
@@ -51,7 +52,6 @@ def find_close_matches(target: str, text: str, threshold: float = CLOSE_MATCH_TH
             matches.append((window, similarity))
     
     # Sort matches by closest similarity and return the matched strings
-    # return [match[0] for match in sorted(matches, key=lambda x: x[1], reverse=True)]
     return [match for match, _ in sorted(matches, key=lambda x: x[1], reverse=True)]
 
 def check_alcohol_content(form_value: float, normalized_ocr: str) -> Tuple[bool, Optional[str]]:
@@ -87,16 +87,29 @@ def check_brand_name(form_value: str, normalized_ocr: str, normalized_variants: 
     Returns (success, closest_match).
     """
     brand_name_norm = normalize_text(form_value)
-
+    
     if fuzzy_match:
-        similarity = max(get_similarity_ratio(brand_name_norm, variant) for variant in normalized_variants)
-        success = similarity >= FUZZY_MATCH_THRESHOLD
-        if not success:
-            closest = find_close_matches(brand_name_norm, normalized_ocr)
-            return False, closest[0] if closest else None
-        return True, None
+        # Check sliding window matches in normalized_ocr
+        matches = find_close_matches(brand_name_norm, normalized_ocr, FUZZY_MATCH_THRESHOLD)
+        if matches:
+            return True, None
+        # Also check in variants
+        for variant in normalized_variants:
+            matches = find_close_matches(brand_name_norm, variant, FUZZY_MATCH_THRESHOLD)
+            if matches:
+                return True, None
+        # No match, find close ones
+        close = find_close_matches(brand_name_norm, normalized_ocr, CLOSE_MATCH_THRESHOLD)
+        logging.info(f"Close matches for brand: {close}")
+        if not close:
+            for variant in normalized_variants:
+                close = find_close_matches(brand_name_norm, variant, CLOSE_MATCH_THRESHOLD)
+                if close:
+                    break
+        return False, close[0] if close else None
     else:
         success = any(brand_name_norm in variant for variant in normalized_variants)
+        logging.info(f"Brand name exact match: {success}")
         return success, None
 
 def check_product_type(form_value: str, normalized_ocr: str, normalized_variants: Set[str], fuzzy_match: bool) -> Tuple[bool, Optional[str]]:
@@ -107,14 +120,27 @@ def check_product_type(form_value: str, normalized_ocr: str, normalized_variants
     product_type_norm = normalize_text(form_value)
 
     if fuzzy_match:
-        similarity = max(get_similarity_ratio(product_type_norm, variant) for variant in normalized_variants)
-        success = similarity >= FUZZY_MATCH_THRESHOLD
-        if not success:
-            closest = find_close_matches(product_type_norm, normalized_ocr)
-            return False, closest[0] if closest else None
-        return True, None
+        # Check sliding window matches in normalized_ocr
+        matches = find_close_matches(product_type_norm, normalized_ocr, FUZZY_MATCH_THRESHOLD)
+        if matches:
+            return True, None
+        # Also check in variants
+        for variant in normalized_variants:
+            matches = find_close_matches(product_type_norm, variant, FUZZY_MATCH_THRESHOLD)
+            if matches:
+                return True, None
+        # No match, find close ones
+        close = find_close_matches(product_type_norm, normalized_ocr, CLOSE_MATCH_THRESHOLD)
+        logging.info(f"Close matches for product_type: {close}")
+        if not close:
+            for variant in normalized_variants:
+                close = find_close_matches(product_type_norm, variant, CLOSE_MATCH_THRESHOLD)
+                if close:
+                    break
+        return False, close[0] if close else None
     else:
         success = any(product_type_norm in variant for variant in normalized_variants)
+        logging.info(f"Product type exact match: {success}")
         return success, None
 
 def check_government_warning(normalized_ocr: str) -> Tuple[bool, Optional[str]]:
@@ -186,6 +212,7 @@ def verify_label(form_data: LabelData, ocr_text: str, fuzzy_match: bool = False)
 
     # Check brand name, allows for variants
     success, closest_match = check_brand_name(form_data.brand_name, normalized_ocr, normalized_variants, fuzzy_match)
+    logging.info(f"Brand name result: success={success}, closest={closest_match}")
     matches['brand_name'] = success
     if not success:
         mismatches.append('brand_name')
@@ -194,6 +221,7 @@ def verify_label(form_data: LabelData, ocr_text: str, fuzzy_match: bool = False)
 
     # Check product type, allows for variants
     success, closest_match = check_product_type(form_data.product_type, normalized_ocr, normalized_variants, fuzzy_match)
+    logging.info(f"Product type result: success={success}, closest={closest_match}")
     matches['product_type'] = success
     if not success:
         mismatches.append('product_type')
