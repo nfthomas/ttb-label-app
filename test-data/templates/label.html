@@ -91,7 +91,7 @@
     <h2>{{ product_type }}</h2>
 
     {% if show_alcohol_content %}
-      <div class="details">{{ alcohol_content }}% ALC./VOL. ({{ proof or "" }})</div>
+      <div class="details">{{ alcohol_content }}% ALC./VOL.{% if proof %} ({{ proof }} proof){% endif %}</div>
     {% endif %}
 
     {% if net_contents %}

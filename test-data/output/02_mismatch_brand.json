@@ -4,13 +4,13 @@
   "expected_ocr": {
     "brand_name": "Heritage Spirits Company",
     "product_type": "Kentucky Straight Bourbon Whiskey",
-    "alcohol_content": 45.0,
+    "alcohol_content": 45,
     "net_contents": "750 mL"
   },
   "form_submission": {
     "brand_name": "Old Tom Distillery",
     "product_type": "Kentucky Straight Bourbon Whiskey",
-    "alcohol_content": 45.0,
+    "alcohol_content": 45,
     "net_contents": "750 mL"
   },
   "display_options": {

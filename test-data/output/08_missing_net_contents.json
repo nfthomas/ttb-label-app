@@ -4,13 +4,13 @@
   "expected_ocr": {
     "brand_name": "Artisan Gin",
     "product_type": "London Dry Gin",
-    "alcohol_content": 42.0,
+    "alcohol_content": 42,
     "net_contents": null
   },
   "form_submission": {
     "brand_name": "Artisan Gin",
     "product_type": "London Dry Gin",
-    "alcohol_content": 42.0,
+    "alcohol_content": 42,
     "net_contents": null
   },
   "display_options": {

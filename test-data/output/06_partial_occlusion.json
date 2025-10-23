@@ -4,13 +4,13 @@
   "expected_ocr": {
     "brand_name": "Riverside Rum",
     "product_type": "Spiced Rum",
-    "alcohol_content": 35.0,
+    "alcohol_content": 35,
     "net_contents": "750 mL"
   },
   "form_submission": {
     "brand_name": "Riverside Rum",
     "product_type": "Spiced Rum",
-    "alcohol_content": 35.0,
+    "alcohol_content": 35,
     "net_contents": "750 mL"
   },
   "display_options": {

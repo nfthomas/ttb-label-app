@@ -33,11 +33,14 @@ def render_html(template_env: Environment, test_case: Dict[str, Any]) -> str:
     template = template_env.get_template('label.html')
 
     # Prepare template context
+    display_options = test_case.get('display_options', {})
+    show_alcohol_content = display_options.get('show_alcohol_content', True)
+
     context = {
         'test_id': test_case['id'],
         **test_case['label_data'],
-        **test_case.get('display_options', {}),
-        'show_alcohol_content': test_case.get('display_options', {}).get('show_alcohol_content', True)
+        **display_options,
+        'show_alcohol_content': show_alcohol_content
     }
 
     return template.render(**context)
