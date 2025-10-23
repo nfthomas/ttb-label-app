@@ -12,6 +12,8 @@ import InputNumber from 'primevue/inputnumber';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
+import Accordion from 'primevue/accordion';
+import AccordionTab from 'primevue/accordiontab';
 
 const app = createApp(App);
 
@@ -24,6 +26,7 @@ app.component('InputNumber', InputNumber);
 app.component('FileUpload', FileUpload);
 app.component('Button', Button);
 app.component('Toast', Toast);
-
+app.component('Accordion', Accordion);
+app.component('AccordionTab', AccordionTab);
 
 app.mount('#app');

@@ -64,9 +64,9 @@
     </Card>
 
     <!-- OCR Debug Panel -->
-    <Card v-if="results.ocrText" class="mt-4">
+    <Card v-if="results.ocrText" class="results debug-panel">
       <template #content>
-        <Accordion>
+        <Accordion :activeIndex="[]">
           <AccordionTab header="View Raw OCR Text">
             <pre class="ocr-text">{{ results.ocrText }}</pre>
           </AccordionTab>
