@@ -24,6 +24,6 @@ export const verifyLabel = async (formData) => {
   }
 };
 
-export const healthCheck = () => api.get('/health');
+export const healthCheck = () => api.get('/api/health');
 
 export default api;
