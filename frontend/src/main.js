@@ -14,6 +14,10 @@ import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import Accordion from 'primevue/accordion';
 import AccordionTab from 'primevue/accordiontab';
+import InputSwitch from 'primevue/inputswitch';
+import Splitter from 'primevue/splitter';
+import SplitterPanel from 'primevue/splitterpanel';
+import Tooltip from 'primevue/tooltip';
 
 const app = createApp(App);
 
@@ -28,5 +32,9 @@ app.component('Button', Button);
 app.component('Toast', Toast);
 app.component('Accordion', Accordion);
 app.component('AccordionTab', AccordionTab);
+app.component('InputSwitch', InputSwitch);
+app.component('Splitter', Splitter);
+app.component('SplitterPanel', SplitterPanel);
+app.directive('tooltip', Tooltip);
 
 app.mount('#app');

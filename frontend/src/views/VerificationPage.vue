@@ -38,6 +38,16 @@
                 <small v-if="errors.productType" class="p-error">{{ errors.productType }}</small>
               </div>
 
+              <!-- Feature Toggles -->
+              <Splitter class="no-lines">
+                <SplitterPanel class="flex align-items-center justify-content-center" :size="3" :minSize="2">
+                  <InputSwitch v-model="formData.fuzzyMatch" />
+                </SplitterPanel>
+                <SplitterPanel class="flex align-items-start justify-content-start" :size="90">
+                  Enable approximate text matching for better results
+                </SplitterPanel>
+              </Splitter>
+
               <!-- Alcohol Content -->
               <div class="form-group">
                 <label for="alcoholContent" class="label">ABV %</label>
@@ -71,26 +81,56 @@
 
             <!-- Image Upload Section -->
             <div class="form-group">
-              <label class="label">Label Image</label>
+              <label class="label">
+                Label Image
+                <InfoIcon 
+                  class="ml-2 inline-block align-text-bottom cursor-help" 
+                  size="16"
+                  v-tooltip.right="'Upload a clear, readable image of the label. Supported formats: JPEG, PNG. Max size: 5MB.'"
+                />
+              </label>
+              
               <FileUpload
+                ref="fileUpload"
                 name="labelImage"
                 @select="handleFileSelect"
                 @clear="clearImage"
+                @error="handleUploadError"
                 :showUploadButton="false"
                 :multiple="false"
                 accept="image/jpeg,image/png"
-                :maxFileSize="10000000"
+                :maxFileSize="5242880"
+                :customUpload="true"
                 class="full-width file-upload"
                 :class="{ 'p-invalid': errors.image }"
               >
                 <template #empty>
                   <div class="flex flex-col items-center justify-center p-5">
                     <i class="pi pi-upload border-2 border-dashed rounded-full p-5 text-4xl text-gray-400"></i>
-                    <p class="mt-4 text-center text-gray-600">Drag and drop files here to upload, or click to browse.</p>
+                    <p class="mt-4 text-center text-gray-600">
+                      Drag and drop image here, or click Choose to browse
+                      <br>
+                      <small class="text-gray-500">
+                        Supported formats: JPEG, PNG | Max size: 5MB
+                      </small>
+                    </p>
+                  </div>
+                </template>
+                <template #content="{ files }">
+                  <div v-if="selectedImage" class="image-preview">
+                    <div class="image-info text-sm text-gray-600 mb-2">
+                      <div>Size: {{ formatFileSize(selectedImage.size) }}</div>
+                      <div v-if="imageDimensions">
+                        Dimensions: {{ imageDimensions.width }}x{{ imageDimensions.height }}px
+                      </div>
+                    </div>
                   </div>
                 </template>
               </FileUpload>
-              <small v-if="errors.image" class="p-error">{{ errors.image }}</small>
+              <small v-if="errors.image" class="p-error block mt-2">{{ errors.image }}</small>
+              <small v-if="imageWarning" class="text-orange-700 block mt-2">
+                ⚠️ {{ imageWarning }}
+              </small>
             </div>
 
             <!-- Submit Button -->
@@ -117,9 +157,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { verifyLabel } from '@/services/api'
+import { Info as InfoIcon } from 'lucide-vue-next'
 import VerificationResults from '@/components/VerificationResults.vue'
 import Toast from 'primevue/toast'
 
@@ -131,26 +172,20 @@ const formData = ref({
   productType: '',
   alcoholContent: null,
   netContents: '',
+  fuzzyMatch: false,
 })
 
 // File handling state
 const selectedFile = ref(null)
+const selectedImage = ref(null)
+const imageDimensions = ref(null)
+const imageWarning = ref('')
 const errors = ref({})
+const fileUpload = ref(null)
 
 // UI state
 const isLoading = ref(false)
 const verificationResults = ref(null)
-
-// Computed properties
-const isFormValid = computed(() => {
-  return (
-    formData.value.brandName &&
-    formData.value.productType &&
-    formData.value.alcoholContent !== null &&
-    selectedFile.value &&
-    Object.keys(errors.value).length === 0
-  )
-})
 
 // Watchers to clear errors on input
 watch(() => formData.value.brandName, (value) => {
@@ -163,8 +198,97 @@ watch(() => formData.value.alcoholContent, (value) => {
   if (value !== null) delete errors.value.alcoholContent;
 });
 
+// Computed properties
+const isFormValid = computed(() => {
+  return (
+    formData.value.brandName &&
+    formData.value.productType &&
+    formData.value.alcoholContent !== null &&
+    selectedFile.value &&
+    Object.keys(errors.value).length === 0
+  )
+});
 
-// Methods
+
+// Image handling methods
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 KB'
+  const kb = bytes / 1024
+  return kb < 1024 
+    ? `${Math.round(kb)} KB` 
+    : `${(kb / 1024).toFixed(1)} MB`
+}
+
+const getImageDimensions = (file) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      resolve({
+        width: img.width,
+        height: img.height
+      })
+    }
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+const checkImageQuality = async (file, dimensions) => {
+  const warnings = []
+  
+  // Check resolution
+  if (dimensions.width < 800 || dimensions.height < 800) {
+    warnings.push('Image resolution is low, which may affect text recognition')
+  }
+  
+  // Check file size
+  if (file.size < 50 * 1024) { // Less than 50KB
+    warnings.push('Image file size is very small, which may indicate low quality')
+  }
+  
+  return warnings.length > 0 ? warnings.join('. ') : ''
+}
+
+const handleFileSelect = async (event) => {
+  const file = event.files[0]
+  imageWarning.value = ''
+  
+  if (file) {
+    selectedFile.value = file
+    selectedImage.value = file
+    
+    try {
+      const dims = await getImageDimensions(file)
+      imageDimensions.value = dims
+      
+      const warning = await checkImageQuality(file, dims)
+      if (warning) {
+        imageWarning.value = warning
+      }
+    } catch (err) {
+      console.error('Error processing image:', err)
+    }
+    
+    delete errors.value.image
+  }
+}
+
+const handleUploadError = (error) => {
+  if (error.type === 'max-file-size') {
+    errors.value.image = 'File size exceeds maximum limit of 5MB'
+  }
+}
+
+const clearImage = () => {
+  selectedFile.value = null
+  selectedImage.value = null
+  imageDimensions.value = null
+  imageWarning.value = ''
+  if (fileUpload.value) {
+    fileUpload.value.clear()
+  }
+}
+
+// Form validation and submission
 const validateForm = () => {
   const newErrors = {}
 
@@ -193,79 +317,67 @@ const validateForm = () => {
   return Object.keys(newErrors).length === 0
 }
 
-const handleFileSelect = (event) => {
-  const file = event.files[0]
-  if (file) {
-    selectedFile.value = file
-    delete errors.value.image
-  }
-}
 
-const clearImage = () => {
-  selectedFile.value = null
-}
 
 const handleSubmit = async () => {
   if (!validateForm()) {
     toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Please fill in all required fields.', life: 3000 });
-    return
+    return;
   }
 
-  isLoading.value = true
-  verificationResults.value = null // Clear previous results
+  isLoading.value = true;
+  verificationResults.value = null; // Clear previous results
   
   try {
-    const data = new FormData()
-    data.append('brand_name', formData.value.brandName)
-    data.append('product_type', formData.value.productType)
-    data.append('alcohol_content', formData.value.alcoholContent)
-    data.append('net_contents', formData.value.netContents)
-    data.append('image', selectedFile.value)
+    const data = new FormData();
+    data.append('brand_name', formData.value.brandName);
+    data.append('product_type', formData.value.productType);
+    data.append('alcohol_content', formData.value.alcoholContent);
+    data.append('net_contents', formData.value.netContents);
+    data.append('fuzzy_match', formData.value.fuzzyMatch);
+    data.append('image', selectedFile.value);
     
-    const response = await verifyLabel(data)
+    const response = await verifyLabel(data);
+    
+     verificationResults.value = {
+       success: response.success,
+       message: response.message,
+       matches: response.matches,
+       close_matches: response.close_matches || {},
+       raw_ocr_text: response.raw_ocr_text,
+       image_info: response.image_info
+     };
 
-    verificationResults.value = {
-      success: response.success,
-      fields: {
-        brandName: {
-          value: response.matches.brand_name ? formData.value.brandName : undefined,
-          expected: formData.value.brandName,
-          matches: response.matches.brand_name
-        },
-        productType: {
-          value: response.matches.product_type ? formData.value.productType : undefined,
-          expected: formData.value.productType,
-          matches: response.matches.product_type
-        },
-        alcoholContent: {
-          value: response.matches.alcohol_content ? formData.value.alcoholContent : undefined,
-          expected: formData.value.alcoholContent,
-          matches: response.matches.alcohol_content
-        },
-        netContents: {
-          value: response.matches.net_contents ? formData.value.netContents : undefined,
-          expected: formData.value.netContents,
-          matches: response.matches.net_contents
-        }
-      },
-      error: response.detail,
-      ocrText: response.raw_ocr_text
+     if (response.success) {
+       toast.add({
+         severity: 'success',
+         summary: 'Verification Successful',
+         detail: response.message,
+         life: 5000
+       });
+     } else if (!response.success) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Verification Failed',
+        detail: response.message,
+        life: 5000
+      });
     }
-
-    const toastMessage = verificationResults.value.success
-      ? { severity: 'success', summary: 'Verification Successful', detail: 'All fields match the label image.' }
-      : { severity: 'warn', summary: 'Verification Failed', detail: 'Some fields do not match the label image.' }
-    
-    toast.add({ ...toastMessage, life: 5000 })
   } catch (error) {
+    console.error('Verification error:', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.detail || 'Failed to process the verification request',
+      life: 5000
+    });
+    
     verificationResults.value = {
       success: false,
-      error: error.message || 'An unexpected error occurred during verification.',
-      fields: {}
-    }
-    toast.add({ severity: 'error', summary: 'Error', detail: error.message || 'An unexpected error occurred.', life: 5000 })
+      error: error.response?.data?.detail || 'An unexpected error occurred'
+    };
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 </script>
@@ -321,5 +433,15 @@ const handleSubmit = async () => {
 
 .submit-button {
   margin-top: 1rem;
+  min-height: 40px;
+}
+
+.no-lines .p-splitter-gutter {
+  display: none;
+}
+
+.no-lines {
+  border: none;
+  outline: none;
 }
 </style>
