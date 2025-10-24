@@ -8,3 +8,11 @@ services:
       - key: PORT
         value: 8000
     healthCheckPath: /api/health
+
+  - type: static
+    name: ttb-label-app-frontend
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    publishPath: frontend/dist
+    rootDir: frontend
