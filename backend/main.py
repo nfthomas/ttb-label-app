@@ -17,6 +17,7 @@ app = FastAPI(title="TTB Label Verification System API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://nfthomas-ttb-label-app.onrender.com",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
