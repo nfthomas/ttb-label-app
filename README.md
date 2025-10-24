@@ -2,7 +2,13 @@
 
 This application helps verify alcohol labels against provided data by using Optical Character Recognition (OCR).
 
-## Label Data Validation
+# Deployment
+
+API deployed at: https://nfthomas-ttb-label-app-api.onrender.com
+
+Site deployed at: https://nfthomas-ttb-label-app.onrender.com
+
+# Label Data Validation
 
 The following table details the accepted formats for each field when verifying a label. The matching is case-insensitive.
 
