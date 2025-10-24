@@ -1,32 +1,32 @@
-# Use a lightweight Python image that allows apt installs
+# Use a lightweight Python base with apt support
 FROM python:3.11-slim
 
-# Install system dependencies for Tesseract and OpenCV
+# Install Tesseract + OpenCV deps
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     libtesseract-dev \
     libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set workdir
 WORKDIR /app
 
-# Copy backend files
+# Copy backend code
 COPY backend ./backend
 
-# Set backend as working directory (where main.py lives)
+# Switch to backend where pyproject.toml and main.py live
 WORKDIR /app/backend
 
-# Install uv and project dependencies (from pyproject.toml or requirements.txt)
-RUN pip install uv && \
+# Install dependencies (system-wide)
+RUN pip install --no-cache-dir uv && \
     if [ -f pyproject.toml ]; then \
-        uv pip install .; \
+        uv pip install --system .; \
     elif [ -f requirements.txt ]; then \
-        pip install -r requirements.txt; \
+        pip install --no-cache-dir -r requirements.txt; \
     fi
 
-# Expose port 8000
+# Expose app port
 EXPOSE 8000
 
-# Run FastAPI app via uvicorn
+# Run FastAPI app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
