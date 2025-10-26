@@ -4,6 +4,18 @@
 setup:
     ./setup.sh
 
+# Run backend locally
+run-backend:
+    cd backend && uv run uvicorn main:app --reload
+
+# Run frontend locally
+run-frontend:
+    cd frontend && npm run dev
+
+# Run both locally in parallel
+run-all:
+    just run-backend & just run-frontend
+
 # Generate test data
 generate-test-data:
     cd test-data && uv run python scripts/generate_labels.py --config config/test_cases.yaml --templates templates --output output
