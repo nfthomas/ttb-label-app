@@ -1,8 +1,6 @@
 <!-- VerificationResults.vue -->
 <template>
   <div v-if="results" class="verification-results">
-
-
     <!-- Success State -->
     <Card v-if="results.success && !results.error" class="success-card">
       <template #content>
@@ -10,10 +8,16 @@
           <CheckCircle class="success-icon mr-2" size="32" />
           <h2 class="text-xl font-bold">Label Verification Successful</h2>
         </div>
-        <p class="mb-4">All required information matches between the form and label image.</p>
-        
+        <p class="mb-4">
+          All required information matches between the form and label image.
+        </p>
+
         <div class="details-panel p-3 border-round">
-          <div v-for="(matched, key) in results.matches" :key="key" class="field-result mb-2">
+          <div
+            v-for="(matched, key) in results.matches"
+            :key="key"
+            class="field-result mb-2"
+          >
             <span class="mr-2">✓</span>
             <span class="field-name">{{ formatFieldName(key) }}:</span>
             <span class="verified-tag">Verified</span>
@@ -30,34 +34,43 @@
       </template>
     </Card>
 
-     <!-- Failure State -->
-     <Card v-else-if="!results.success && !results.error" class="error-card">
-       <template #content>
-         <div class="flex align-items-center mb-3">
-           <AlertOctagon class="error-icon mr-2" size="32" />
-           <h2 class="text-xl font-bold">Label Verification Failed</h2>
-         </div>
-         <p class="mb-4">Discrepancies found between form and label image.</p>
+    <!-- Failure State -->
+    <Card v-else-if="!results.success && !results.error" class="error-card">
+      <template #content>
+        <div class="flex align-items-center mb-3">
+          <AlertOctagon class="error-icon mr-2" size="32" />
+          <h2 class="text-xl font-bold">Label Verification Failed</h2>
+        </div>
+        <p class="mb-4">Discrepancies found between form and label image.</p>
 
-         <div class="details-panel p-3 border-round">
-           <div v-for="(matched, key) in results.matches" :key="key" class="field-result mb-2" :class="{ success: matched, failure: !matched }">
-             <span v-if="matched" class="success-check mr-2">✓</span>
-             <span v-else class="error-x mr-2">✗</span>
-             <span class="field-name">{{ formatFieldName(key) }}:</span>
-             <span v-if="matched" class="verified-tag">Verified</span>
-             <div v-else>
-               <div v-if="results.close_matches[key]" class="mt-2 pl-4">
-                 <div class="text-sm text-500">Close matches found:</div>
-                 <div v-for="(match, idx) in results.close_matches[key]" :key="idx" class="text-sm text-red-700">
-                   {{ match }}
-                 </div>
-               </div>
-               <div v-else class="text-sm text-red-700">Not found</div>
-             </div>
-           </div>
-         </div>
-       </template>
-     </Card>
+        <div class="details-panel p-3 border-round">
+          <div
+            v-for="(matched, key) in results.matches"
+            :key="key"
+            class="field-result mb-2"
+            :class="{ success: matched, failure: !matched }"
+          >
+            <span v-if="matched" class="success-check mr-2">✓</span>
+            <span v-else class="error-x mr-2">✗</span>
+            <span class="field-name">{{ formatFieldName(key) }}:</span>
+            <span v-if="matched" class="verified-tag">Verified</span>
+            <div v-else>
+              <div v-if="results.close_matches[key]" class="mt-2 pl-4">
+                <div class="text-sm text-500">Close matches found:</div>
+                <div
+                  v-for="(match, idx) in results.close_matches[key]"
+                  :key="idx"
+                  class="text-sm text-red-700"
+                >
+                  {{ match }}
+                </div>
+              </div>
+              <div v-else class="text-sm text-red-700">Not found</div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </Card>
 
     <!-- Error State -->
     <Card v-else class="warning-card">
@@ -66,7 +79,9 @@
           <AlertTriangle class="warning-icon mr-2" size="32" />
           <h2 class="text-xl font-bold">Unable to Process Image</h2>
         </div>
-        <p class="error-message mb-4">{{ results.error || 'An unexpected error occurred' }}</p>
+        <p class="error-message mb-4">
+          {{ results.error || 'An unexpected error occurred' }}
+        </p>
         <div v-if="isImageError(results.error)" class="image-requirements mt-3">
           <h3 class="text-lg mb-2">Image Requirements:</h3>
           <ul class="list-none p-0">
@@ -79,38 +94,50 @@
       </template>
     </Card>
 
-     <!-- OCR Debug Panel -->
-     <Card v-if="results.raw_ocr_text || results.image_info" class="results debug-panel mt-3">
-       <template #content>
-         <Accordion :activeIndex="[]">
-           <AccordionTab v-if="results.raw_ocr_text" header="View Raw OCR Text">
-             <pre class="ocr-text">{{ results.raw_ocr_text }}</pre>
-           </AccordionTab>
-           <AccordionTab v-if="results.image_info" header="Image Information">
-             <h3 class="text-lg mb-2">Image Information</h3>
-             <div class="grid">
-               <div class="col-6 md:col-3">
-                 <div class="text-500">Dimensions</div>
-                 <div>{{ results.image_info.width }}x{{ results.image_info.height }}px</div>
-               </div>
-               <div class="col-6 md:col-3">
-                 <div class="text-500">File Size</div>
-                 <div>{{ formatFileSize(results.image_info.file_size) }}</div>
-               </div>
-               <div class="col-6 md:col-3">
-                 <div class="text-500">Format</div>
-                 <div>{{ results.image_info.format }}</div>
-               </div>
-             </div>
-           </AccordionTab>
-         </Accordion>
-       </template>
-     </Card>
+    <!-- OCR Debug Panel -->
+    <Card
+      v-if="results.raw_ocr_text || results.image_info"
+      class="results debug-panel mt-3"
+    >
+      <template #content>
+        <Accordion :activeIndex="[]">
+          <AccordionTab v-if="results.raw_ocr_text" header="View Raw OCR Text">
+            <pre class="ocr-text">{{ results.raw_ocr_text }}</pre>
+          </AccordionTab>
+          <AccordionTab v-if="results.image_info" header="Image Information">
+            <h3 class="text-lg mb-2">Image Information</h3>
+            <div class="grid">
+              <div class="col-6 md:col-3">
+                <div class="text-500">Dimensions</div>
+                <div>
+                  {{ results.image_info.width }}x{{
+                    results.image_info.height
+                  }}px
+                </div>
+              </div>
+              <div class="col-6 md:col-3">
+                <div class="text-500">File Size</div>
+                <div>{{ formatFileSize(results.image_info.file_size) }}</div>
+              </div>
+              <div class="col-6 md:col-3">
+                <div class="text-500">Format</div>
+                <div>{{ results.image_info.format }}</div>
+              </div>
+            </div>
+          </AccordionTab>
+        </Accordion>
+      </template>
+    </Card>
   </div>
 </template>
 
 <script>
-import { CheckCircle, AlertOctagon, AlertTriangle, Info as InfoIcon } from 'lucide-vue-next'
+import {
+  CheckCircle,
+  AlertOctagon,
+  AlertTriangle,
+  Info as InfoIcon,
+} from 'lucide-vue-next';
 
 export default {
   name: 'VerificationResults',
@@ -118,31 +145,33 @@ export default {
     CheckCircle,
     AlertOctagon,
     AlertTriangle,
-    InfoIcon
+    InfoIcon,
   },
   props: {
     results: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
     formatFieldName(key) {
       return key
         .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, str => str.toUpperCase())
+        .replace(/^./, (str) => str.toUpperCase());
     },
     formatFileSize(sizeInKB) {
-      if (!sizeInKB) return 'Unknown'
-      return sizeInKB < 1024 
-        ? `${Math.round(sizeInKB)}KB` 
-        : `${(sizeInKB / 1024).toFixed(1)}MB`
+      if (!sizeInKB) return 'Unknown';
+      return sizeInKB < 1024
+        ? `${Math.round(sizeInKB)}KB`
+        : `${(sizeInKB / 1024).toFixed(1)}MB`;
     },
     isImageError(error) {
-      if (!error) return false
-      return error.toLowerCase().includes('image') || 
-             error.toLowerCase().includes('file') ||
-             error.toLowerCase().includes('text')
+      if (!error) return false;
+      return (
+        error.toLowerCase().includes('image') ||
+        error.toLowerCase().includes('file') ||
+        error.toLowerCase().includes('text')
+      );
     },
     getTooltip(field) {
       const tooltips = {
@@ -150,12 +179,12 @@ export default {
         product_type: 'Type of alcoholic beverage (e.g., Vodka, Whiskey)',
         alcohol_content: 'Alcohol by volume (ABV) percentage',
         net_contents: 'Volume of the container (e.g., 750 mL)',
-        government_warning: 'Required government warning statement'
-      }
-      return tooltips[field]
-    }
-  }
-}
+        government_warning: 'Required government warning statement',
+      };
+      return tooltips[field];
+    },
+  },
+};
 </script>
 
 <style scoped>

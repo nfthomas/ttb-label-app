@@ -1,5 +1,5 @@
 <script setup>
-import VerificationPage from './views/VerificationPage.vue'
+import VerificationPage from './views/VerificationPage.vue';
 </script>
 
 <template>
