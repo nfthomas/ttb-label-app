@@ -4,11 +4,11 @@
     <!-- Success State -->
     <Card v-if="results.success && !results.error" class="success-card">
       <template #content>
-        <div class="flex align-items-center mb-3">
-          <CheckCircle class="success-icon mr-2" size="32" />
+        <div class="flex align-items-center gap-2">
+          <CheckCircle class="success-icon" size="28" />
           <h2 class="text-xl font-bold">Label Verification Successful</h2>
         </div>
-        <p class="mb-4">
+        <p class="mt-3 mb-4">
           All required information matches between the form and label image.
         </p>
 
@@ -21,14 +21,6 @@
             <span class="mr-2">✓</span>
             <span class="field-name">{{ formatFieldName(key) }}:</span>
             <span class="verified-tag">Verified</span>
-            <Tooltip v-if="getTooltip(key)">
-              <template #target>
-                <InfoIcon size="16" class="ml-2" />
-              </template>
-              <template #content>
-                <div v-html="getTooltip(key)"></div>
-              </template>
-            </Tooltip>
           </div>
         </div>
       </template>
@@ -37,11 +29,11 @@
     <!-- Failure State -->
     <Card v-else-if="!results.success && !results.error" class="error-card">
       <template #content>
-        <div class="flex align-items-center mb-3">
-          <AlertOctagon class="error-icon mr-2" size="32" />
+        <div class="flex align-items-center gap-2">
+          <AlertOctagon class="error-icon" size="28" />
           <h2 class="text-xl font-bold">Label Verification Failed</h2>
         </div>
-        <p class="mb-4">Discrepancies found between form and label image.</p>
+        <p class="mt-3 mb-4">Discrepancies found between form and label image.</p>
 
         <div class="details-panel p-3 border-round">
           <div
@@ -75,11 +67,11 @@
     <!-- Error State -->
     <Card v-else class="warning-card">
       <template #content>
-        <div class="flex align-items-center mb-3">
-          <AlertTriangle class="warning-icon mr-2" size="32" />
+        <div class="flex align-items-center gap-2">
+          <AlertTriangle class="warning-icon" size="28" />
           <h2 class="text-xl font-bold">Unable to Process Image</h2>
         </div>
-        <p class="error-message mb-4">
+        <p class="error-message mt-3 mb-4">
           {{ results.error || 'An unexpected error occurred' }}
         </p>
         <div v-if="isImageError(results.error)" class="image-requirements mt-3">
@@ -136,7 +128,6 @@ import {
   CheckCircle,
   AlertOctagon,
   AlertTriangle,
-  Info as InfoIcon,
 } from 'lucide-vue-next';
 
 export default {
@@ -145,7 +136,6 @@ export default {
     CheckCircle,
     AlertOctagon,
     AlertTriangle,
-    InfoIcon,
   },
   props: {
     results: {
@@ -173,16 +163,6 @@ export default {
         error.toLowerCase().includes('text')
       );
     },
-    getTooltip(field) {
-      const tooltips = {
-        brand_name: 'Brand name as it appears on the label',
-        product_type: 'Type of alcoholic beverage (e.g., Vodka, Whiskey)',
-        alcohol_content: 'Alcohol by volume (ABV) percentage',
-        net_contents: 'Volume of the container (e.g., 750 mL)',
-        government_warning: 'Required government warning statement',
-      };
-      return tooltips[field];
-    },
   },
 };
 </script>
@@ -190,96 +170,14 @@ export default {
 <style scoped>
 .verification-results {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 2rem auto 0;
 }
 
-.image-info-card {
-  background-color: #f8f9fa;
-}
-
-.details-panel {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
-.field-result {
-  display: flex;
-  align-items: flex-start;
-  padding: 0.5rem;
-  border-radius: 4px;
-}
-
-.field-result.success {
-  background-color: rgba(0, 200, 0, 0.05);
-}
-
-.field-result.failure {
-  background-color: rgba(255, 0, 0, 0.05);
-}
-
-.field-name {
-  font-weight: 600;
-  margin-right: 0.5rem;
-  min-width: 120px;
-}
-
-.verified-tag {
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background-color: #22c55e;
-  color: white;
-  margin-left: auto;
-}
-
-.success-check {
-  color: #22c55e;
-}
-
-.error-x {
-  color: #ef4444;
-}
-
-.error-text {
-  color: #dc2626;
-}
-
-.image-requirements {
-  background-color: rgba(255, 237, 213, 0.4);
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #fed7aa;
-}
-
-.image-requirements ul li {
-  margin: 0.5rem 0;
-  color: #9a3412;
-}
-
-.ocr-text {
-  font-family: monospace;
-  white-space: pre-wrap;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.tooltip-icon {
-  cursor: help;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.tooltip-icon:hover {
-  opacity: 1;
-}
-</style>
-
-<style scoped>
-.verification-results {
-  margin-top: 2rem;
+/* Card styles */
+.success-card :deep(.p-card-content),
+.error-card :deep(.p-card-content),
+.warning-card :deep(.p-card-content) {
+  padding: 1.5rem;
 }
 
 .success-card :deep(.p-card-content) {
@@ -297,6 +195,7 @@ export default {
   border: 1px solid #fef3c7;
 }
 
+/* Icons */
 .success-icon {
   color: #22c55e;
 }
@@ -309,21 +208,7 @@ export default {
   color: #f59e0b;
 }
 
-.details-panel {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.field-result {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.field-name {
-  font-weight: 600;
-  min-width: 120px;
-}
-
+/* Status indicators */
 .success-check {
   color: #22c55e;
 }
@@ -336,21 +221,69 @@ export default {
   color: #ef4444;
 }
 
+/* Content sections */
+.details-panel {
+  background-color: rgba(255, 255, 255, 0.5);
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.field-result {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+}
+
+.field-result:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.field-result.success {
+  background-color: rgba(0, 200, 0, 0.05);
+}
+
+.field-result.failure {
+  background-color: rgba(255, 0, 0, 0.05);
+}
+
+.field-name {
+  font-weight: 600;
+  min-width: 120px;
+}
+
 .verified-tag {
-  background: #dcfce7;
-  color: #166534;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
   font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  background-color: #22c55e;
+  color: white;
   margin-left: auto;
 }
 
+/* Image requirements */
+.image-requirements {
+  background-color: rgba(255, 237, 213, 0.4);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fed7aa;
+  margin-top: 1.5rem;
+}
+
+.image-requirements ul li {
+  margin: 0.75rem 0;
+  color: #9a3412;
+}
+
+/* Debug panel */
 .ocr-text {
-  white-space: pre-wrap;
   font-family: monospace;
-  background: #f8fafc;
+  white-space: pre-wrap;
+  background-color: #f8f9fa;
   padding: 1rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
+  max-height: 300px;
+  overflow-y: auto;
 }
 </style>
