@@ -4,9 +4,14 @@ import re
 from typing import List, Optional, Set, Tuple
 
 from app.models.verification import LabelData, VerificationResult
-
-FUZZY_MATCH_THRESHOLD = 0.8
-CLOSE_MATCH_THRESHOLD = 0.5
+from app.services.verification_constants import (
+    FIELD_CONFIGS,
+    AlcoholContent,
+    FieldNames,
+    MatchThresholds,
+    NetContents,
+    TextNormalization,
+)
 
 
 def normalize_text(text: str) -> str:
@@ -25,13 +30,11 @@ def normalize_ocr_text(text: str) -> Set[str]:
 
     Substitute letter->number and number->letter
     """
-    # Handle common OCR mistakes
-    replacements = {"o": "0", "0": "o", "i": "1", "1": "i", "s": "5", "5": "s"}
     normalized = text.lower()
 
     # Try each replacement and keep track of variants
     variants = {normalized}
-    for old, new in replacements.items():
+    for old, new in TextNormalization.REPLACEMENTS.items():
         for existing in list(variants):
             if old in existing:
                 variants.add(existing.replace(old, new))
@@ -40,7 +43,7 @@ def normalize_ocr_text(text: str) -> Set[str]:
 
 
 def find_close_matches(
-    target: str, text: str, threshold: float = CLOSE_MATCH_THRESHOLD
+    target: str, text: str, threshold: float = MatchThresholds.CLOSE_MATCH
 ) -> List[str]:
     """Find close matches in text using fuzzy matching with a sliding window."""
     words = text.split()
@@ -53,8 +56,13 @@ def find_close_matches(
         if similarity >= threshold:
             matches.append((window, similarity))
 
-    # Sort matches by closest similarity and return the matched strings
-    return [match for match, _ in sorted(matches, key=lambda x: x[1], reverse=True)]
+    # Sort matches by closest similarity and return up to MAX_CLOSE_MATCHES matched strings
+    return [
+        match
+        for match, _ in sorted(matches, key=lambda x: x[1], reverse=True)[
+            : MatchThresholds.MAX_CLOSE_MATCHES
+        ]
+    ]
 
 
 def check_alcohol_content(
@@ -65,21 +73,14 @@ def check_alcohol_content(
     Returns (success, closest_match).
     """
     content_str = f"{form_value:g}"
-    patterns = [
-        rf"{content_str}\s*%",  # 45% or 45 %
-        rf"{content_str}\s*%\s*alc\.?\s*/\s*vol\.?",  # 45% Alc./Vol.
-        rf"alc\.?\s*{content_str}\s*%\s*by\s*vol\.?",  # Alc 45% by Vol
-    ]
-
-    normalized_text = normalized_ocr
+    patterns = AlcoholContent.get_patterns(content_str)
 
     # Check for exact matches
-    if any(re.search(pattern, normalized_text) for pattern in patterns):
+    if any(pattern.search(normalized_ocr) for pattern in patterns):
         return True, None
 
     # Look for close matches
-    alcohol_pattern = r"\d+(?:\.\d+)?\s*%(?:\s*alc\.?\s*/\s*vol\.?|\s*by\s*vol\.?)?"
-    matches = re.findall(alcohol_pattern, normalized_text)
+    matches = AlcoholContent.GENERAL_PATTERN.findall(normalized_ocr)
     if matches:
         closest = matches[0]
         return False, f"Found {closest} (expected {content_str}%)"
@@ -102,26 +103,26 @@ def check_brand_name(
     if fuzzy_match:
         # Check sliding window matches in normalized_ocr
         matches = find_close_matches(
-            brand_name_norm, normalized_ocr, FUZZY_MATCH_THRESHOLD
+            brand_name_norm, normalized_ocr, MatchThresholds.FUZZY_MATCH
         )
         if matches:
             return True, None
         # Also check in variants
         for variant in normalized_variants:
             matches = find_close_matches(
-                brand_name_norm, variant, FUZZY_MATCH_THRESHOLD
+                brand_name_norm, variant, MatchThresholds.FUZZY_MATCH
             )
             if matches:
                 return True, None
         # No match, find close ones
         close = find_close_matches(
-            brand_name_norm, normalized_ocr, CLOSE_MATCH_THRESHOLD
+            brand_name_norm, normalized_ocr, MatchThresholds.CLOSE_MATCH
         )
         logging.info(f"Close matches for brand: {close}")
         if not close:
             for variant in normalized_variants:
                 close = find_close_matches(
-                    brand_name_norm, variant, CLOSE_MATCH_THRESHOLD
+                    brand_name_norm, variant, MatchThresholds.CLOSE_MATCH
                 )
                 if close:
                     break
@@ -147,26 +148,26 @@ def check_product_type(
     if fuzzy_match:
         # Check sliding window matches in normalized_ocr
         matches = find_close_matches(
-            product_type_norm, normalized_ocr, FUZZY_MATCH_THRESHOLD
+            product_type_norm, normalized_ocr, MatchThresholds.FUZZY_MATCH
         )
         if matches:
             return True, None
         # Also check in variants
         for variant in normalized_variants:
             matches = find_close_matches(
-                product_type_norm, variant, FUZZY_MATCH_THRESHOLD
+                product_type_norm, variant, MatchThresholds.FUZZY_MATCH
             )
             if matches:
                 return True, None
         # No match, find close ones
         close = find_close_matches(
-            product_type_norm, normalized_ocr, CLOSE_MATCH_THRESHOLD
+            product_type_norm, normalized_ocr, MatchThresholds.CLOSE_MATCH
         )
         logging.info(f"Close matches for product_type: {close}")
         if not close:
             for variant in normalized_variants:
                 close = find_close_matches(
-                    product_type_norm, variant, CLOSE_MATCH_THRESHOLD
+                    product_type_norm, variant, MatchThresholds.CLOSE_MATCH
                 )
                 if close:
                     break
@@ -185,7 +186,7 @@ def check_government_warning(normalized_ocr: str) -> Tuple[bool, Optional[str]]:
     success = "government warning" in normalized_ocr
     if not success:
         closest = find_close_matches(
-            "government warning", normalized_ocr, threshold=CLOSE_MATCH_THRESHOLD
+            "government warning", normalized_ocr, threshold=MatchThresholds.CLOSE_MATCH
         )
         return False, closest[0] if closest else None
     return True, None
@@ -209,22 +210,13 @@ def check_net_contents(
     form_num, form_unit = match.groups()
     form_unit = form_unit.lower()
 
-    normalized_text = normalized_ocr
-
-    # Create patterns for different format variations
-    patterns = [
-        rf"{form_num}\s*{form_unit}",  # 750ml
-        rf"{form_num}\s*{form_unit[0]}{form_unit[1:]}",  # 750mL
-        rf"{form_num}\s*{form_unit.upper()}",  # 750ML
-    ]
-
-    # Check for exact matches
-    if any(re.search(pattern, normalized_text) for pattern in patterns):
+    # Check for exact matches using predefined patterns
+    patterns = NetContents.get_patterns(form_num, form_unit)
+    if any(pattern.search(normalized_ocr) for pattern in patterns):
         return True, None
 
-    # Look for close matches
-    volume_pattern = r"\d+(?:\.\d+)?\s*(?:ml|mL|oz|fl\.?\s*oz)"
-    matches = re.findall(volume_pattern, normalized_text)
+    # Look for close matches using general pattern
+    matches = NetContents.GENERAL_PATTERN.findall(normalized_ocr)
     if matches:
         closest = matches[0]
         return False, f"Found {closest} (expected {form_value})"
@@ -252,63 +244,75 @@ def verify_label(
     mismatches = []
     close_matches = {}
 
-    # Check brand name, allows for variants
+    # Check brand name
+    config = FIELD_CONFIGS[FieldNames.BRAND_NAME]
     success, closest_match = check_brand_name(
-        form_data.brand_name, normalized_ocr, normalized_variants, fuzzy_match
+        form_data.brand_name,
+        normalized_ocr,
+        normalized_variants,
+        fuzzy_match and config.allows_fuzzy_match,
     )
     logging.info(f"Brand name result: success={success}, closest={closest_match}")
-    matches["brand_name"] = success
+    matches[FieldNames.BRAND_NAME] = success
     if not success:
-        mismatches.append("brand_name")
+        mismatches.append(FieldNames.BRAND_NAME)
         if closest_match:
-            close_matches["brand_name"] = [closest_match]
+            close_matches[FieldNames.BRAND_NAME] = [closest_match]
 
-    # Check product type, allows for variants
+    # Check product type
+    config = FIELD_CONFIGS[FieldNames.PRODUCT_TYPE]
     success, closest_match = check_product_type(
-        form_data.product_type, normalized_ocr, normalized_variants, fuzzy_match
+        form_data.product_type,
+        normalized_ocr,
+        normalized_variants,
+        fuzzy_match and config.allows_fuzzy_match,
     )
     logging.info(f"Product type result: success={success}, closest={closest_match}")
-    matches["product_type"] = success
+    matches[FieldNames.PRODUCT_TYPE] = success
     if not success:
-        mismatches.append("product_type")
+        mismatches.append(FieldNames.PRODUCT_TYPE)
         if closest_match:
-            close_matches["product_type"] = [closest_match]
+            close_matches[FieldNames.PRODUCT_TYPE] = [closest_match]
 
     # Check alcohol content
     success, closest_match = check_alcohol_content(
         form_data.alcohol_content, normalized_ocr
     )
-    matches["alcohol_content"] = success
+    matches[FieldNames.ALCOHOL_CONTENT] = success
     if not success:
-        mismatches.append("alcohol_content")
+        mismatches.append(FieldNames.ALCOHOL_CONTENT)
         if closest_match:
-            close_matches["alcohol_content"] = [closest_match]
+            close_matches[FieldNames.ALCOHOL_CONTENT] = [closest_match]
 
     # Check net contents if provided
     if form_data.net_contents:
         success, closest_match = check_net_contents(
             form_data.net_contents, normalized_ocr
         )
-        matches["net_contents"] = success
+        matches[FieldNames.NET_CONTENTS] = success
         if not success:
-            mismatches.append("net_contents")
+            mismatches.append(FieldNames.NET_CONTENTS)
             if closest_match:
-                close_matches["net_contents"] = [closest_match]
+                close_matches[FieldNames.NET_CONTENTS] = [closest_match]
 
     # Check government warning
+    config = FIELD_CONFIGS[FieldNames.GOVERNMENT_WARNING]
     success, closest_match = check_government_warning(normalized_ocr)
-    matches["government_warning"] = success
+    matches[FieldNames.GOVERNMENT_WARNING] = success
     if not success:
-        mismatches.append("government_warning")
+        mismatches.append(FieldNames.GOVERNMENT_WARNING)
         if closest_match:
-            close_matches["government_warning"] = [closest_match]
+            close_matches[FieldNames.GOVERNMENT_WARNING] = [closest_match]
 
     # Generate human-readable message
     if not mismatches:
         message = "All fields successfully verified on the label"
     else:
+        # Use field configs to get proper field names for the message
         message = "Verification failed for: " + ", ".join(
-            f"{field} ({close_matches[field][0]})" if field in close_matches else field
+            f"{FIELD_CONFIGS[field].name} ({close_matches[field][0]})"
+            if field in close_matches
+            else FIELD_CONFIGS[field].name
             for field in mismatches
         )
 
