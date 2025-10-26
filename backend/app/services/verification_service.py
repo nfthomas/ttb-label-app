@@ -83,7 +83,7 @@ def check_alcohol_content(
     matches = AlcoholContent.GENERAL_PATTERN.findall(normalized_ocr)
     if matches:
         closest = matches[0]
-        return False, f"Found {closest} (expected {content_str}%)"
+        return False, f"{closest}"
 
     return False, None
 
@@ -219,7 +219,7 @@ def check_net_contents(
     matches = NetContents.GENERAL_PATTERN.findall(normalized_ocr)
     if matches:
         closest = matches[0]
-        return False, f"Found {closest} (expected {form_value})"
+        return False, f"{closest}"
 
     return False, None
 
