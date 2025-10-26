@@ -18,9 +18,12 @@
                 <InputText
                   id="brandName"
                   v-model="formData.brandName"
-                  placeholder="Enter brand name"
+                  placeholder="Brand name"
                   class="full-width large-input"
                   :class="{ 'p-invalid': errors.brandName }"
+                  v-tooltip.right="
+                    'Enter the brand name of the alcohol product'
+                  "
                 />
                 <small v-if="errors.brandName" class="p-error">{{
                   errors.brandName
@@ -38,6 +41,9 @@
                   placeholder="e.g., Kentucky Straight Bourbon Whiskey, IPA, Vodka"
                   class="full-width large-input"
                   :class="{ 'p-invalid': errors.productType }"
+                  v-tooltip.right="
+                    'Enter the type or class of the alcoholic beverage'
+                  "
                 />
                 <small v-if="errors.productType" class="p-error">{{
                   errors.productType
@@ -92,6 +98,9 @@
                   class="full-width large-input"
                   :class="{ 'p-invalid': errors.alcoholContent }"
                   suffix=" %"
+                  v-tooltip.right="
+                    'Enter the alcohol by volume (ABV) percentage'
+                  "
                 />
                 <small v-if="errors.alcoholContent" class="p-error">{{
                   errors.alcoholContent
@@ -106,6 +115,9 @@
                   v-model="formData.netContents"
                   placeholder="e.g., 750 mL, 12 fl oz"
                   class="full-width large-input"
+                  v-tooltip.right="
+                    'Enter the net contents as it appears on the label (optional)'
+                  "
                 />
               </div>
             </div>
