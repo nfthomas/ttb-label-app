@@ -13,6 +13,6 @@ module.exports = {
     'vue/no-reserved-component-names': 'off',
     'no-unused-vars': 'warn',
     'vue/no-unused-vars': 'warn',
-    'no-undef': 'off'
+    'no-undef': 'off',
   },
 };
