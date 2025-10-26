@@ -10,11 +10,11 @@ generate-test-data:
 
 # Test API against local server
 test-api-local IMAGE:
-    cd backend && API_URL="http://localhost:8000/api/verify" ./test_api.sh {{IMAGE}}
+    cd backend && API_URL="http://localhost:8000/api/verify" ./test_api.sh "../{{IMAGE}}"
 
 # Test API against deployed server
 test-api-deployed IMAGE:
-    cd backend && API_URL="https://nfthomas-ttb-label-app-api.onrender.com/api/verify" ./test_api.sh {{IMAGE}}
+    cd backend && API_URL="https://nfthomas-ttb-label-app-api.onrender.com/api/verify" ./test_api.sh "../{{IMAGE}}"
 
 # Lint all code
 lint:
