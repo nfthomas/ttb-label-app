@@ -8,6 +8,14 @@ API deployed at: https://nfthomas-ttb-label-app-api.onrender.com
 
 Site deployed at: https://nfthomas-ttb-label-app.onrender.com
 
+# Setup
+
+Run `just setup` to get everything ready.
+
+- `just generate-test-data` to create test images
+- `just test-api-local path/to/image.png` to test your local API
+- `just lint` and `just format` for linting/formatting 
+
 # Label Data Validation
 
 The following table details the accepted formats for each field when verifying a label. The matching is case-insensitive.

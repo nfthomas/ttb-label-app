@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Configuration
-API_URL="http://localhost:8000/api/verify"
-# API_URL="https://nfthomas-ttb-label-app-api.onrender.com/api/verify"
+API_URL="${API_URL:-http://localhost:8000/api/verify}"
 IMAGE_PATH="$1"  # First argument should be the path to your image file
 
 # Check if image path is provided

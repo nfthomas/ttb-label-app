@@ -51,11 +51,26 @@ if ! command -v uv &> /dev/null; then
     curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 
-# Install Python dependencies
-echo -e "\n${YELLOW}Installing Python dependencies...${NC}"
+# Install Python dependencies for backend
+echo -e "\n${YELLOW}Installing backend dependencies...${NC}"
 cd backend
-uv pip install -r requirements.txt
+uv sync
+
+# Install Python dependencies for test-data
+echo -e "\n${YELLOW}Installing test-data dependencies...${NC}"
+cd ../test-data
+uv sync
+echo -e "${YELLOW}Installing Playwright browsers...${NC}"
+uv run playwright install chromium
+uv run playwright install-deps
+
+# Install frontend dependencies
+echo -e "\n${YELLOW}Installing frontend dependencies...${NC}"
+cd ../frontend
+npm install
 
 echo -e "\n${GREEN}Setup complete!${NC}"
-echo -e "You can now start the application with: ${YELLOW}uv run uvicorn main:app --reload${NC}"
-echo -e "To test the API, use: ${YELLOW}./test_api.sh <path-to-image>${NC}"
+echo -e "You can now use: ${YELLOW}just setup${NC} to run this again"
+echo -e "Or use ${YELLOW}just generate-test-data${NC} to create test data"
+echo -e "Use ${YELLOW}just test-api-local <image-path>${NC} to test local API"
+echo -e "Use ${YELLOW}just lint${NC} and ${YELLOW}just format${NC} for code quality"
