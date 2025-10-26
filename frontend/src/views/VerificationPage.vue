@@ -61,6 +61,22 @@
                 </SplitterPanel>
               </Splitter>
 
+              <Splitter class="no-lines">
+                <SplitterPanel
+                  class="flex align-items-center justify-content-center"
+                  :size="3"
+                  :minSize="2"
+                >
+                  <InputSwitch v-model="formData.checkGovernmentWarning" />
+                </SplitterPanel>
+                <SplitterPanel
+                  class="flex align-items-start justify-content-start"
+                  :size="90"
+                >
+                  Check for government warning on the label
+                </SplitterPanel>
+              </Splitter>
+
               <!-- Alcohol Content -->
               <div class="form-group">
                 <label for="alcoholContent" class="label">ABV %</label>
@@ -135,7 +151,7 @@
                     </p>
                   </div>
                 </template>
-                <template #content="{ files }">
+                <template #content>
                   <div v-if="selectedImage" class="image-preview">
                     <div class="image-info text-sm text-gray-600 mb-2">
                       <div>Size: {{ formatFileSize(selectedImage.size) }}</div>
@@ -196,6 +212,7 @@ const formData = ref({
   alcoholContent: null,
   netContents: '',
   fuzzyMatch: false,
+  checkGovernmentWarning: false,
 });
 
 // File handling state
@@ -371,6 +388,10 @@ const handleSubmit = async () => {
     data.append('alcohol_content', formData.value.alcoholContent);
     data.append('net_contents', formData.value.netContents);
     data.append('fuzzy_match', formData.value.fuzzyMatch);
+    data.append(
+      'check_government_warning',
+      formData.value.checkGovernmentWarning
+    );
     data.append('image', selectedFile.value);
 
     const response = await verifyLabel(data);

@@ -178,7 +178,7 @@ def check_product_type(
         return success, None
 
 
-def check_government_warning(normalized_ocr: str) -> Tuple[bool, Optional[str]]:
+def check_government_warning_text(normalized_ocr: str) -> Tuple[bool, Optional[str]]:
     """
     Check if the government warning appears in the OCR text.
     Returns (success, closest_match).
@@ -225,7 +225,10 @@ def check_net_contents(
 
 
 def verify_label(
-    form_data: LabelData, ocr_text: str, fuzzy_match: bool = False
+    form_data: LabelData,
+    ocr_text: str,
+    fuzzy_match: bool = False,
+    check_government_warning: bool = False,
 ) -> VerificationResult:
     """
     Verify if the form data matches the OCR text from the label image.
@@ -234,6 +237,7 @@ def verify_label(
         form_data: The form data to verify against
         ocr_text: The OCR text from the image
         fuzzy_match: Whether to use fuzzy matching (default: False)
+        check_government_warning: Whether to check for government warning (default: False)
     """
     if not ocr_text.strip():
         raise ValueError("No text detected in image")
@@ -295,14 +299,15 @@ def verify_label(
             if closest_match:
                 close_matches[FieldNames.NET_CONTENTS] = [closest_match]
 
-    # Check government warning
-    config = FIELD_CONFIGS[FieldNames.GOVERNMENT_WARNING]
-    success, closest_match = check_government_warning(normalized_ocr)
-    matches[FieldNames.GOVERNMENT_WARNING] = success
-    if not success:
-        mismatches.append(FieldNames.GOVERNMENT_WARNING)
-        if closest_match:
-            close_matches[FieldNames.GOVERNMENT_WARNING] = [closest_match]
+    # Check government warning if requested
+    if check_government_warning:
+        config = FIELD_CONFIGS[FieldNames.GOVERNMENT_WARNING]
+        success, closest_match = check_government_warning_text(normalized_ocr)
+        matches[FieldNames.GOVERNMENT_WARNING] = success
+        if not success:
+            mismatches.append(FieldNames.GOVERNMENT_WARNING)
+            if closest_match:
+                close_matches[FieldNames.GOVERNMENT_WARNING] = [closest_match]
 
     # Generate human-readable message
     if not mismatches:

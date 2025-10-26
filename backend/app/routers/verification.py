@@ -47,6 +47,7 @@ async def verify_label_image(
     net_contents: str = Form(...),
     alcohol_content: float = Form(...),
     fuzzy_match: bool = Form(False),
+    check_government_warning: bool = Form(False),
 ) -> VerificationResult:
     """
     Verify alcohol label image against provided form data.
@@ -57,6 +58,7 @@ async def verify_label_image(
         product_type: Type of alcohol product
         alcohol_content: Alcohol content percentage (ABV)
         net_contents: Optional volume of the container
+        check_government_warning: Whether to check for government warning
 
     Returns:
         VerificationResult with matching details
@@ -114,7 +116,12 @@ async def verify_label_image(
 
         # Verify label data
         try:
-            result = verify_label(form_data, ocr_text, fuzzy_match=fuzzy_match)
+            result = verify_label(
+                form_data,
+                ocr_text,
+                fuzzy_match=fuzzy_match,
+                check_government_warning=check_government_warning,
+            )
             result.image_info = image_info
             return result
         except ValueError as e:
