@@ -309,17 +309,12 @@ def verify_label(
             if closest_match:
                 close_matches[FieldNames.GOVERNMENT_WARNING] = [closest_match]
 
-    # Generate human-readable message
+    # Generate human-readable message with only missing field names
     if not mismatches:
         message = "All fields successfully verified on the label"
     else:
-        # Use field configs to get proper field names for the message
-        message = "Verification failed for: " + ", ".join(
-            f"{FIELD_CONFIGS[field].name} ({close_matches[field][0]})"
-            if field in close_matches
-            else FIELD_CONFIGS[field].name
-            for field in mismatches
-        )
+        missing_names = [FIELD_CONFIGS[field].name for field in mismatches]
+        message = "Verification failed for: " + ", ".join(missing_names)
 
     label_success = len(mismatches) == 0
     return VerificationResult(
