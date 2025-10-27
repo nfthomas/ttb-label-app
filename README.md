@@ -1,4 +1,4 @@
-# ttb-label-app aka... Good Sprits!
+# ttb-label-app aka ... Good Spirits
 
 This application helps verify alcohol labels against provided data by using Optical Character Recognition (OCR).
 
