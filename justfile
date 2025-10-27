@@ -20,6 +20,10 @@ run-all:
 generate-test-data:
     cd test-data && uv run python scripts/generate_labels.py --config config/test_cases.yaml --templates templates --output output
 
+# Generate requirements.txt for backend
+generate-backend-requirements:
+    cd backend && uv pip compile pyproject.toml -o requirements.txt
+
 # Test API against local server
 test-api-local IMAGE:
     cd backend && API_URL="http://localhost:8000/api/verify" ./test_api.sh "../{{IMAGE}}"
