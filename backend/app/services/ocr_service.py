@@ -34,7 +34,7 @@ def extract_text_from_image(image_bytes: bytes) -> str:
             raise ValueError("No text could be extracted from the image")
 
         # Clean and normalize text
-        cleaned_text = text.strip().replace("\n\n", "\n")
+        cleaned_text = text.strip().replace("\n", " ").replace("  ", " ")
 
         logger.debug(f"Extracted OCR text: {cleaned_text}")
 
