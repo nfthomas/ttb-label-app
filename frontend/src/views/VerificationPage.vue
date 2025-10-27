@@ -6,7 +6,7 @@
       <Card>
         <template #title>
           <h1 class="text-2xl font-bold text-gray-900">
-            Alcohol Label Verification
+            Good Spirits! | Alcohol Label Verification
           </h1>
         </template>
         <template #content>
