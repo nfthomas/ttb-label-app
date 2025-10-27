@@ -44,7 +44,7 @@ Tesseract was chosen for its ease of integration into a standard FastAPI backend
 
 - Single-page application (SPA) with no redirects. This allows the user to scroll back and forth between the image upload and results without losing state.
 - Uses structured input fields for consistent data entry. This is supported with PrimeVue components.
-- Uses custom CSS to override PrimeVue styles: this forces a consistent layout, but assumes mobile browsers won't be used as reactivity is limited.
+- Uses custom CSS to override PrimeVue styles. This forces a consistent layout, but assumes mobile browsers won't be used as reactivity is limited. It looks best on desktop browsers.
 
 ## Tools
 
@@ -57,7 +57,9 @@ Tesseract was chosen for its ease of integration into a standard FastAPI backend
 - ABV accepts input as a percentage only.
 - If fuzzy matching is enabled, 80% similarity counts as a match.
 - OCR requires clear text, with limited recognition of stylized fonts (cursive).
-- When resubmitting an image, the previous submission has to be removed by clicking `X Cancel` first (this is a limitation of the frontend library).
+- OCR joins lines and whitespace. In the future, we could explore layout analysis to better separate intentional text blocks.
+- When resubmitting an image, the previous submission has to be removed by clicking `X Cancel` first. This is a limitation of the frontend library, and handling file state for a better experience adds a lot of complexity.
+- Errors are logged in the backend console, and the frontend makes no attempt to display specific error messages beyond label verification results.
 
 # Features
 
