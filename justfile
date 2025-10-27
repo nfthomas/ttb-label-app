@@ -31,8 +31,8 @@ test-api-deployed IMAGE:
 # Lint all code
 lint:
     cd frontend && npm run lint
-    cd backend && uv run ruff check .
-    cd test-data && uv run ruff check .
+    cd backend && uv run ruff check . --fix
+    cd test-data && uv run ruff check . --fix
 
 # Format all code
 format:
