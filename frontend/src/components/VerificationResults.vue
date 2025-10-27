@@ -130,46 +130,33 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { CheckCircle, AlertOctagon, AlertTriangle } from 'lucide-vue-next';
+import { formatFileSize } from '@/utils/formatters.js';
 
-export default {
-  name: 'VerificationResults',
-  components: {
-    CheckCircle,
-    AlertOctagon,
-    AlertTriangle,
+const { results } = defineProps({
+  results: {
+    type: Object,
+    required: true,
   },
-  props: {
-    results: {
-      type: Object,
-      required: true,
-    },
-  },
-  methods: {
-    formatFieldName(key) {
-      return key
-        .replace(/_/g, ' ') // Replace underscores with spaces
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
-        .replace(/\s+/g, ' ') // Remove any double spaces
-        .trim(); // Remove any leading/trailing spaces
-    },
-    formatFileSize(sizeInKB) {
-      if (!sizeInKB) return 'Unknown';
-      return sizeInKB < 1024
-        ? `${Math.round(sizeInKB)}KB`
-        : `${(sizeInKB / 1024).toFixed(1)}MB`;
-    },
-    isImageError(error) {
-      if (!error) return false;
-      return (
-        error.toLowerCase().includes('image') ||
-        error.toLowerCase().includes('file') ||
-        error.toLowerCase().includes('text')
-      );
-    },
-  },
+});
+
+const formatFieldName = (key) => {
+  return key
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+    .replace(/\s+/g, ' ') // Remove any double spaces
+    .trim(); // Remove any leading/trailing spaces
+};
+
+const isImageError = (error) => {
+  if (!error) return false;
+  return (
+    error.toLowerCase().includes('image') ||
+    error.toLowerCase().includes('file') ||
+    error.toLowerCase().includes('text')
+  );
 };
 </script>
 

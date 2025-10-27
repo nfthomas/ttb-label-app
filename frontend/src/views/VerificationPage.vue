@@ -207,6 +207,7 @@ import { useToast } from 'primevue/usetoast';
 import { verifyLabel } from '@/services/api';
 import VerificationResults from '@/components/VerificationResults.vue';
 import Toast from 'primevue/toast';
+import { formatFileSize } from '@/utils/formatters.js';
 
 const toast = useToast();
 
@@ -264,12 +265,6 @@ const isFormValid = computed(() => {
 });
 
 // Image handling methods
-const formatFileSize = (bytes) => {
-  if (!bytes) return '0 KB';
-  const kb = bytes / 1024;
-  return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
-};
-
 const getImageDimensions = (file) => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -281,25 +276,6 @@ const getImageDimensions = (file) => {
     };
     img.src = URL.createObjectURL(file);
   });
-};
-
-const checkImageQuality = async (file, dimensions) => {
-  const warnings = [];
-
-  // Check resolution
-  if (dimensions.width < 800 || dimensions.height < 800) {
-    warnings.push('Image resolution is low, which may affect text recognition');
-  }
-
-  // Check file size
-  if (file.size < 50 * 1024) {
-    // Less than 50KB
-    warnings.push(
-      'Image file size is very small, which may indicate low quality'
-    );
-  }
-
-  return warnings.length > 0 ? warnings.join('. ') : '';
 };
 
 const handleFileSelect = async (event) => {
