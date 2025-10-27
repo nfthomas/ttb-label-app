@@ -101,4 +101,4 @@ Since this matching algorithm is somewhat computationally intensive, future impr
 
 ![fuzzy_name_close_match.png](docs/fuzzy_name_close_match.png)
 
-> A label where the Brand Name is close to the expected value, and fuzzy matching is enabled. In this case "Old tom distillery" matches a different part of the label with "distilled".
+> A label where the Brand Name is close to the expected value, and fuzzy matching is enabled. In this case "Old tom distillery" somewhat matches a different part of the label with "distilled".
