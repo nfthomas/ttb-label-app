@@ -18,6 +18,7 @@ export default defineConfig({
         secure: false,
       },
     },
+    // required for hot-reloading inside WSL2
     watch: {
       usePolling: true,
     },
