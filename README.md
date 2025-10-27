@@ -57,7 +57,7 @@ Tesseract was chosen for its ease of integration into a standard FastAPI backend
 - ABV accepts input as a percentage only.
 - If fuzzy matching is enabled, 80% similarity counts as a match.
 - OCR requires clear text, with limited recognition of stylized fonts (cursive).
-- OCR joins lines and whitespace. In the future, we could explore layout analysis to better separate intentional text blocks.
+- Label text processing joins lines and whitespace. In the future, we could explore layout analysis to better separate intentional text blocks.
 - When resubmitting an image, the previous submission has to be removed by clicking `X Cancel` first. This is a limitation of the frontend library, and handling file state for a better experience adds a lot of complexity.
 - Errors are logged in the backend console, and the frontend makes no attempt to display specific error messages beyond label verification results.
 
