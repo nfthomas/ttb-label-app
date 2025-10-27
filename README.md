@@ -50,10 +50,12 @@ Tesseract was chosen for its ease of integration into a standard FastAPI backend
 - `just`: Task runner to simplify setup, running, and testing.
 - `uv`: Python package manager and virtual environment tool. Also generates pip-compatible `requirements.txt` for Docker deployment.
 
-## Limitations
+## Limitations/Assumptions
 
-- OCR requires clear text, with limited recognition of stylized fonts (cursive).
+- Only checks Net Contents if provided.
 - ABV accepts input as a percentage only.
+- If fuzzy matching is enabled, 80% similarity counts as a match.
+- OCR requires clear text, with limited recognition of stylized fonts (cursive).
 - When resubmitting an image, the previous submission has to be removed by clicking `X Cancel` first (this is a limitation of the frontend library).
 
 # Features
