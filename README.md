@@ -88,3 +88,17 @@ The `MatchThresholds.FUZZY_MATCH` (0.8) has a higher threshold than `MatchThresh
 ### Future Improvements
 
 Since this matching algorithm is somewhat computationally intensive, future improvements could alleviate performance concerns. We could adjust thresholds dynamically based on text length or quality. We could look into caching similarity results for repeated comparisons; plus we expect most labels to be similar.
+
+# Examples
+
+![success.png](docs/success.png)
+
+> A successful match where all fields are correctly identified.
+
+![mismatched_net_contents.png](docs/mismatched_net_contents.png)
+
+> A label where the Net Contents does not match the expected value.
+
+![fuzzy_name_close_match.png](docs/fuzzy_name_close_match.png)
+
+> A label where the Brand Name is close to the expected value, and fuzzy matching is enabled. In this case "Old tom distillery" matches a different part of the label with "distilled".
