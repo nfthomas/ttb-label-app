@@ -44,6 +44,7 @@ Tesseract was chosen for its ease of integration into a standard FastAPI backend
 
 - Single-page application (SPA) with no redirects. This allows the user to scroll back and forth between the image upload and results without losing state.
 - Uses structured input fields for consistent data entry. This is supported with PrimeVue components.
+- Uses custom CSS to override PrimeVue styles: this forces a consistent layout, but assumes mobile browsers won't be used as reactivity is limited.
 
 ## Tools
 
@@ -87,4 +88,3 @@ The `MatchThresholds.FUZZY_MATCH` (0.8) has a higher threshold than `MatchThresh
 ### Future Improvements
 
 Since this matching algorithm is somewhat computationally intensive, future improvements could alleviate performance concerns. We could adjust thresholds dynamically based on text length or quality. We could look into caching similarity results for repeated comparisons; plus we expect most labels to be similar.
-
