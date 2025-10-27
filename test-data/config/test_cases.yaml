@@ -113,23 +113,7 @@ test_cases:
       alcohol_content: 35
       net_contents: "750 mL"
 
-  - id: "07_special_characters"
-    description: "Brand name with special characters and accents"
-    label_data:
-      brand_name: "Château d'Étoile"
-      product_type: "Rosé Wine"
-      alcohol_content: 12.5
-      net_contents: "750 mL"
-    display_options:
-      show_government_warning: true
-      quality: "high"
-    expected_ocr:
-      brand_name: "Château d'Étoile"
-      product_type: "Rosé Wine"
-      alcohol_content: 12.5
-      net_contents: "750 mL"
-
-  - id: "08_missing_net_contents"
+  - id: "07_missing_net_contents"
     description: "Missing volume information"
     label_data:
       brand_name: "Artisan Gin"

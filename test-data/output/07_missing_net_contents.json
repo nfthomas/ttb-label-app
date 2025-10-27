@@ -1,5 +1,5 @@
 {
-  "test_id": "08_missing_net_contents",
+  "test_id": "07_missing_net_contents",
   "description": "Missing volume information",
   "expected_ocr": {
     "brand_name": "Artisan Gin",

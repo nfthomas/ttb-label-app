@@ -41,7 +41,6 @@ requires-python = ">=3.11"
     "UP", # pyupgrade
   ]
   ignore = [
-    "E501", # line too long, handled by black
     "UP035", # deprecated typing imports
     "UP006", # use dict/list instead of Dict/List
     "B904", # raise from err
