@@ -20,7 +20,6 @@ from playwright.sync_api import sync_playwright
 
 
 def load_config(config_path: Path) -> dict[str, Any]:
-    """Load and parse YAML configuration"""
     try:
         with open(config_path) as f:
             return yaml.safe_load(f)
@@ -30,7 +29,6 @@ def load_config(config_path: Path) -> dict[str, Any]:
 
 
 def render_html(template_env: Environment, test_case: dict[str, Any]) -> str:
-    """Render HTML from template with test case data"""
     template = template_env.get_template("label.html")
 
     # Prepare template context
@@ -50,7 +48,6 @@ def render_html(template_env: Environment, test_case: dict[str, Any]) -> str:
 def generate_image(
     test_case: dict[str, Any], html_content: str, output_dir: Path
 ) -> Path:
-    """Generate PNG image from HTML content"""
     output_path = output_dir / f"{test_case['id']}.png"
 
     with sync_playwright() as p:
@@ -58,6 +55,7 @@ def generate_image(
         page = browser.new_page()
 
         page.set_content(html_content, wait_until="networkidle")
+        # Set viewport size to accommodate label dimensions
         page.set_viewport_size({"width": 1000, "height": 1300})
 
         # Capture only the .label div
@@ -73,7 +71,6 @@ def generate_image(
 
 
 def generate_metadata(test_case: dict[str, Any], output_dir: Path) -> Path:
-    """Generate metadata JSON for test validation"""
     metadata = {
         "test_id": test_case["id"],
         "description": test_case["description"],
