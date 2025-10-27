@@ -93,6 +93,8 @@ Since this matching algorithm is somewhat computationally intensive, future impr
 
 # Examples
 
+![success_input.png](docs/success_input.png)
+
 ![success.png](docs/success.png)
 
 > A successful match where all fields are correctly identified.
