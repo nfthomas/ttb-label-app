@@ -121,19 +121,13 @@
                 />
               </div>
             </div>
-
             <!-- Image Upload Section -->
             <div class="form-group">
-              <label class="label">
-                Label Image
-                <InfoIcon
-                  class="ml-2 inline-block align-text-bottom cursor-help"
-                  size="16"
-                  v-tooltip.right="
-                    'Upload a clear, readable image of the label. Supported formats: JPEG, PNG. Max size: 5MB.'
-                  "
-                />
-              </label>
+              <label class="label"> Label Image </label>
+              <small class="text-gray-600 mb-2 text-lg"
+                >Cancel previous image before attempting to choose a new
+                one</small
+              >
 
               <FileUpload
                 ref="fileUpload"
@@ -211,7 +205,6 @@
 import { computed, ref, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { verifyLabel } from '@/services/api';
-import { Info as InfoIcon } from 'lucide-vue-next';
 import VerificationResults from '@/components/VerificationResults.vue';
 import Toast from 'primevue/toast';
 
@@ -413,6 +406,15 @@ const handleSubmit = async () => {
       message: response.message,
       matches: response.matches,
       close_matches: response.close_matches || {},
+      expected_values: {
+        brand_name: formData.value.brandName,
+        product_type: formData.value.productType,
+        alcohol_content: formData.value.alcoholContent.toString(),
+        net_contents: formData.value.netContents,
+        government_warning: formData.value.checkGovernmentWarning
+          ? 'government warning'
+          : '',
+      },
       raw_ocr_text: response.raw_ocr_text,
       image_info: response.image_info,
     };
@@ -446,6 +448,15 @@ const handleSubmit = async () => {
     verificationResults.value = {
       success: false,
       error: error.response?.data?.detail || 'An unexpected error occurred',
+      expected_values: {
+        brand_name: formData.value.brandName,
+        product_type: formData.value.productType,
+        alcohol_content: formData.value.alcoholContent.toString(),
+        net_contents: formData.value.netContents,
+        government_warning: formData.value.checkGovernmentWarning
+          ? 'government warning'
+          : '',
+      },
     };
   } finally {
     isLoading.value = false;

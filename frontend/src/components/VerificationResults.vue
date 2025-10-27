@@ -33,7 +33,9 @@
           <AlertOctagon class="error-icon" size="28" />
           <h2 class="text-xl font-bold">Label Verification Failed</h2>
         </div>
-        <p class="mt-3 mb-4">Discrepancies found between form and label image.</p>
+        <p class="mt-3 mb-4">
+          Discrepancies found between form and label image.
+        </p>
 
         <div class="details-panel p-3 border-round">
           <div
@@ -47,6 +49,11 @@
             <span class="field-name">{{ formatFieldName(key) }}:</span>
             <span v-if="matched" class="verified-tag">Verified</span>
             <div v-else>
+              <div class="expected-value mt-1 pl-4">
+                <span class="text-sm text-500"
+                  >(expected {{ results.expected_values[key] }})</span
+                >
+              </div>
               <div v-if="results.close_matches[key]" class="mt-2 pl-4">
                 <div class="text-sm text-500">Close matches found:</div>
                 <div
@@ -57,7 +64,7 @@
                   {{ match }}
                 </div>
               </div>
-              <div v-else class="text-sm text-red-700">Not found</div>
+              <span v-else class="text-sm text-red-700 ml-6">Not found</span>
             </div>
           </div>
         </div>
@@ -124,11 +131,7 @@
 </template>
 
 <script>
-import {
-  CheckCircle,
-  AlertOctagon,
-  AlertTriangle,
-} from 'lucide-vue-next';
+import { CheckCircle, AlertOctagon, AlertTriangle } from 'lucide-vue-next';
 
 export default {
   name: 'VerificationResults',
@@ -146,8 +149,11 @@ export default {
   methods: {
     formatFieldName(key) {
       return key
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/^./, (str) => str.toUpperCase());
+        .replace(/_/g, ' ') // Replace underscores with spaces
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, (str) => str.toUpperCase()) // Capitalize first letter
+        .replace(/\s+/g, ' ') // Remove any double spaces
+        .trim(); // Remove any leading/trailing spaces
     },
     formatFileSize(sizeInKB) {
       if (!sizeInKB) return 'Unknown';
@@ -259,6 +265,11 @@ export default {
   background-color: #22c55e;
   color: white;
   margin-left: auto;
+}
+
+.expected-value {
+  font-style: italic;
+  color: #6b7280;
 }
 
 /* Image requirements */
