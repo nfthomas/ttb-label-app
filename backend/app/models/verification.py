@@ -25,6 +25,9 @@ class VerificationResult(BaseModel):
     close_matches: Dict[str, List[str]] = Field(
         default_factory=dict, description="Close matches found for failed verifications"
     )
+    expected_values: Dict[str, str] = Field(
+        default_factory=dict, description="Expected values from the form data"
+    )
     image_info: Optional[Dict[str, Any]] = Field(
         None,
         description="Information about the processed image (dimensions, file size)",

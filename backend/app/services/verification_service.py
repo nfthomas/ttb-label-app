@@ -4,7 +4,7 @@ import re
 from typing import List, Optional, Set, Tuple
 
 from app.models.verification import LabelData, VerificationResult
-from app.services.verification_constants import (
+from app.services.verification_config import (
     FIELD_CONFIGS,
     AlcoholContent,
     FieldNames,
@@ -15,19 +15,16 @@ from app.services.verification_constants import (
 
 
 def normalize_text(text: str) -> str:
-    """Normalize text for comparison by converting to lowercase and removing extra whitespace."""
     return " ".join(text.lower().split())
 
 
 def get_similarity_ratio(str1: str, str2: str) -> float:
-    """Calculate similarity ratio between two strings using difflib."""
     return difflib.SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
 
 
 def normalize_ocr_text(text: str) -> Set[str]:
     """
     Normalize OCR text by handling common OCR mistakes.
-
     Substitute letter->number and number->letter
     """
     normalized = text.lower()
@@ -45,7 +42,9 @@ def normalize_ocr_text(text: str) -> Set[str]:
 def find_close_matches(
     target: str, text: str, threshold: float = MatchThresholds.CLOSE_MATCH
 ) -> List[str]:
-    """Find close matches in text using fuzzy matching with a sliding window."""
+    """
+    Find close matches in text using fuzzy matching with a sliding window.
+    """
     words = text.split()
     window_size = len(target.split())
     matches = []
@@ -56,7 +55,7 @@ def find_close_matches(
         if similarity >= threshold:
             matches.append((window, similarity))
 
-    # Sort matches by closest similarity and return up to MAX_CLOSE_MATCHES matched strings
+    # Sort matches by closest similarity and return up to MAX_CLOSE_MATCHES
     return [
         match
         for match, _ in sorted(matches, key=lambda x: x[1], reverse=True)[
@@ -232,12 +231,6 @@ def verify_label(
 ) -> VerificationResult:
     """
     Verify if the form data matches the OCR text from the label image.
-
-    Args:
-        form_data: The form data to verify against
-        ocr_text: The OCR text from the image
-        fuzzy_match: Whether to use fuzzy matching (default: False)
-        check_government_warning: Whether to check for government warning (default: False)
     """
     if not ocr_text.strip():
         raise ValueError("No text detected in image")
@@ -317,6 +310,12 @@ def verify_label(
         message = "Verification failed for: " + ", ".join(missing_names)
 
     label_success = len(mismatches) == 0
+    expected_values = {
+        str(FieldNames.BRAND_NAME): form_data.brand_name,
+        str(FieldNames.PRODUCT_TYPE): form_data.product_type,
+        str(FieldNames.ALCOHOL_CONTENT): str(form_data.alcohol_content),
+        str(FieldNames.NET_CONTENTS): form_data.net_contents or "",
+    }
     return VerificationResult(
         success=label_success,
         matches=matches,
@@ -324,5 +323,6 @@ def verify_label(
         raw_ocr_text=ocr_text,
         message=message,
         close_matches=close_matches,
+        expected_values=expected_values,
         image_info=None,
     )

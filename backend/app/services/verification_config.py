@@ -8,35 +8,38 @@ from pydantic import BaseModel, Field
 
 @dataclass(frozen=True)
 class MatchThresholds:
-    """Thresholds used for fuzzy string matching across different verification checks"""
+    """
+    Thresholds used for fuzzy string matching across different verification checks.
+    """
 
-    FUZZY_MATCH: ClassVar[float] = 0.8  # High confidence match threshold
-    CLOSE_MATCH: ClassVar[float] = (
-        0.5  # Lower threshold for finding potential close matches
-    )
-    MAX_CLOSE_MATCHES: ClassVar[int] = 3  # Maximum number of close matches to return
+    # High confidence match threshold
+    FUZZY_MATCH: ClassVar[float] = 0.8
+    # Lower threshold for finding potential close matches
+    CLOSE_MATCH: ClassVar[float] = 0.5
+    # Maximum number of close matches to return
+    MAX_CLOSE_MATCHES: ClassVar[int] = 3
 
     @classmethod
     def is_fuzzy_match(cls, ratio: float) -> bool:
-        """Check if a similarity ratio meets the fuzzy match threshold"""
         return ratio >= cls.FUZZY_MATCH
 
     @classmethod
     def is_close_match(cls, ratio: float) -> bool:
-        """Check if a similarity ratio meets the close match threshold"""
         return ratio >= cls.CLOSE_MATCH
 
 
 class TextNormalization:
-    """Common OCR text normalization substitutions for handling common OCR mistakes"""
+    """
+    Common OCR text normalization substitutions for handling common OCR mistakes.
+    """
 
     REPLACEMENTS: Dict[str, str] = {
-        "o": "0",  # letter to number
-        "0": "o",  # number to letter
-        "i": "1",  # letter to number
-        "1": "i",  # number to letter
-        "s": "5",  # letter to number
-        "5": "s",  # number to letter
+        "o": "0",
+        "0": "o",
+        "i": "1",
+        "1": "i",
+        "s": "5",
+        "5": "s",
     }
 
 
@@ -69,7 +72,7 @@ class NetContents:
     Patterns for matching net contents in various formats.
     Examples:
     - 750ml
-    - 750mL
+    - 750 mL
     - 750ML
     - 12 fl oz
     """
@@ -87,8 +90,6 @@ class NetContents:
 
 
 class FieldNames(str, Enum):
-    """Enumeration of field names used in verification responses"""
-
     BRAND_NAME = "brand_name"
     PRODUCT_TYPE = "product_type"
     ALCOHOL_CONTENT = "alcohol_content"
@@ -97,8 +98,6 @@ class FieldNames(str, Enum):
 
 
 class VerificationField(BaseModel):
-    """Configuration for field-specific verification settings"""
-
     name: str = Field(..., description="Display name of the field")
     allows_fuzzy_match: bool = Field(
         default=False,
@@ -106,7 +105,6 @@ class VerificationField(BaseModel):
     )
 
 
-# Field configurations
 FIELD_CONFIGS = {
     FieldNames.BRAND_NAME: VerificationField(
         name="Brand Name",

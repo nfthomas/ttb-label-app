@@ -4,6 +4,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from app.routers import health, verification
 
@@ -43,7 +44,8 @@ async def global_exception_handler(request, exc):
     # Log unexpected errors
     logging.error(f"Unexpected error: {str(exc)}", exc_info=True)
     return JSONResponse(
-        status_code=500, content={"detail": "An unexpected error occurred"}
+        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected error occurred"},
     )
 
 

@@ -4,6 +4,11 @@ from typing import Dict
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile
 from PIL import Image
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_422_UNPROCESSABLE_CONTENT,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 
 from app.models.verification import LabelData, VerificationResult
 from app.services.ocr_service import extract_text_from_image
@@ -17,15 +22,12 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
 class VerificationError(Exception):
-    """Custom exception for verification-related errors."""
-
     def __init__(self, status_code: int, detail: str):
         self.status_code = status_code
         self.detail = detail
 
 
 def get_image_info(image_data: bytes) -> Dict:
-    """Extract image dimensions and file size."""
     try:
         with Image.open(io.BytesIO(image_data)) as img:
             return {
@@ -51,47 +53,30 @@ async def verify_label_image(
 ) -> VerificationResult:
     """
     Verify alcohol label image against provided form data.
-
-    Args:
-        image: Image file (jpg or png)
-        brand_name: Name of the alcohol brand
-        product_type: Type of alcohol product
-        alcohol_content: Alcohol content percentage (ABV)
-        net_contents: Optional volume of the container
-        check_government_warning: Whether to check for government warning
-
-    Returns:
-        VerificationResult with matching details
-
-    Raises:
-        HTTPException: For invalid files or processing errors
     """
     try:
-        # Validate file type
+        # Validate image file
         if image.content_type not in ["image/jpeg", "image/png"]:
             raise VerificationError(
-                status_code=400,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail="Invalid file type. Only JPEG and PNG images are allowed.",
             )
 
-        # Read file content
         contents = await image.read()
 
-        # Check file size
         if len(contents) > MAX_FILE_SIZE:
             raise VerificationError(
-                status_code=400, detail="File size exceeds maximum limit of 5MB"
+                status_code=HTTP_400_BAD_REQUEST,
+                detail="File size exceeds maximum limit of 5MB",
             )
 
-        # Get image information
         image_info = get_image_info(contents)
         if not image_info:
             raise VerificationError(
-                status_code=422,
-                detail="Unable to process image. Please ensure it is a valid JPEG or PNG file.",
+                status_code=HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Unable to process image. Ensure valid JPEG or PNG file.",
             )
 
-        # Create form data model
         form_data = LabelData(
             brand_name=brand_name,
             product_type=product_type,
@@ -104,14 +89,14 @@ async def verify_label_image(
             ocr_text = extract_text_from_image(contents)
             if not ocr_text.strip():
                 raise VerificationError(
-                    status_code=422,
-                    detail="No text could be detected in the image. Please ensure the image is clear and contains readable text.",
+                    status_code=HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail="No text detected in image. Ensure clear and readable text.",
                 )
         except Exception as e:
             logger.error(f"OCR processing error: {str(e)}")
             raise VerificationError(
-                status_code=422,
-                detail="Error processing image text. Please ensure the image is clear and properly oriented.",
+                status_code=HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Error processing image text. Ensure clear and oriented image.",
             )
 
         # Verify label data
@@ -125,17 +110,19 @@ async def verify_label_image(
             result.image_info = image_info
             return result
         except ValueError as e:
-            raise VerificationError(status_code=422, detail=str(e))
+            raise VerificationError(
+                status_code=HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+            )
 
     except VerificationError as e:
         logger.error(f"Verification error: {e.detail}")
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred while processing the image. Please try again.",
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected error processing image. Please try again.",
         )
