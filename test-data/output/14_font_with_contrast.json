@@ -1,0 +1,22 @@
+{
+  "test_id": "14_font_with_contrast",
+  "description": "High contrast serif making thin strokes harder to detect",
+  "expected_ocr": {
+    "brand_name": "Contrast Test",
+    "product_type": "Premium Gin",
+    "alcohol_content": 42,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Contrast Test",
+    "product_type": "Premium Gin",
+    "alcohol_content": 42,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high",
+    "font_style": "serif_thin",
+    "contrast": 1.5
+  }
+}

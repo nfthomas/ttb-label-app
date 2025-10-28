@@ -1,0 +1,21 @@
+{
+  "test_id": "10_serif_thin",
+  "description": "Cormorant Garamond font - thin strokes, potential OCR confusion",
+  "expected_ocr": {
+    "brand_name": "Delicate Spirits",
+    "product_type": "Artisanal Gin",
+    "alcohol_content": 44.5,
+    "net_contents": "500 mL"
+  },
+  "form_submission": {
+    "brand_name": "Delicate Spirits",
+    "product_type": "Artisanal Gin",
+    "alcohol_content": 44.5,
+    "net_contents": "500 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high",
+    "font_style": "serif_thin"
+  }
+}

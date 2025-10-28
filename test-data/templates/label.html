@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>{{ brand_name }} Label</title>
   <style>
+    /* Import various challenging fonts for OCR testing */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@700;900&family=Cormorant+Garamond:wght@700&family=Abril+Fatface&family=Bodoni+Moda:wght@700&display=swap');
+
     body {
       background: #222;
       margin: 0;
@@ -12,7 +15,6 @@
       justify-content: center;
       height: 100vh;
     }
-
     .label {
       width: 960px;
       background: #f4edd8;
@@ -24,7 +26,6 @@
       color: #000;
       position: relative;
     }
-
     .label::before {
       content: "";
       position: absolute;
@@ -32,14 +33,12 @@
       border: 2px solid #000;
       pointer-events: none;
     }
-
     h1 {
       font-size: 80px;
       font-weight: 700;
       margin: 20px 0 50px 0;
       letter-spacing: 1px;
     }
-
     h2 {
       font-size: 44px;
       font-weight: 700;
@@ -47,14 +46,12 @@
       line-height: 1.3;
       margin-bottom: 50px;
     }
-
     .details {
       font-size: 32px;
       font-weight: 600;
       margin-bottom: 20px;
       line-height: 1.5;
     }
-
     .bottler {
       font-size: 28px;
       font-weight: 700;
@@ -62,7 +59,6 @@
       line-height: 1.6;
       text-transform: uppercase;
     }
-
     .warning {
       text-align: left;
       font-family: Arial, sans-serif;
@@ -70,18 +66,97 @@
       line-height: 1.45;
       margin-top: 60px;
     }
-
     .warning strong {
       font-weight: 700;
     }
 
-    /* Add optional visual imperfections */
+    /* Font style variations for OCR challenge testing */
+    {% if font_style == 'serif_difficult' %}
+      /* Playfair Display - elegant but condensed serifs */
+      .label {
+        font-family: 'Playfair Display', 'Times New Roman', serif;
+        letter-spacing: 2px;
+      }
+      h1 {
+        font-size: 96px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+      }
+      h2 {
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+    {% elif font_style == 'serif_ornate' %}
+      /* Cinzel - Roman-inspired with high contrast */
+      .label {
+        font-family: 'Cinzel', 'Times New Roman', serif;
+        letter-spacing: 3px;
+      }
+      h1 {
+        font-size: 88px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 6px;
+      }
+    {% elif font_style == 'serif_thin' %}
+      /* Cormorant Garamond - thin strokes, high contrast */
+      .label {
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+        letter-spacing: 1px;
+      }
+      h1 {
+        font-size: 92px;
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+    {% elif font_style == 'serif_display' %}
+      /* Abril Fatface - ultra-bold display serif */
+      h1 {
+        font-family: 'Abril Fatface', 'Times New Roman', serif;
+        font-size: 82px;
+        letter-spacing: 0px;
+        text-transform: uppercase;
+      }
+    {% elif font_style == 'serif_bodoni' %}
+      /* Bodoni - classic high-contrast */
+      .label {
+        font-family: 'Bodoni Moda', 'Times New Roman', serif;
+      }
+      h1 {
+        font-size: 88px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+    {% endif %}
+
+    /* Contrast adjustment */
+    {% if contrast %}
+      .label {
+        filter: contrast({{ contrast }});
+      }
+    {% endif %}
+
+    /* Quality degradation effects */
     {% if quality == 'low' %}
-      .label { filter: blur({{ blur_amount }}px); opacity: {{ opacity }}; transform: rotate({{ rotation }}deg); }
+      .label { 
+        filter: blur({{ blur_amount or 5 }}px) {% if contrast %}contrast({{ contrast }}){% endif %}; 
+        opacity: {{ opacity or 1 }}; 
+        transform: rotate({{ rotation or 0 }}deg); 
+      }
     {% elif quality == 'medium' %}
-      .label { filter: blur(2px); opacity: {{ opacity }}; transform: rotate({{ rotation }}deg); }
-    {% elif rotation %}
-      .label { transform: rotate({{ rotation }}deg); }
+      .label { 
+        filter: blur(2px) {% if contrast %}contrast({{ contrast }}){% endif %}; 
+        opacity: {{ opacity or 0.85 }}; 
+        transform: rotate({{ rotation or 0 }}deg); 
+      }
+    {% elif rotation or opacity %}
+      .label { 
+        {% if contrast %}filter: contrast({{ contrast }});{% endif %}
+        {% if opacity %}opacity: {{ opacity }};{% endif %}
+        {% if rotation %}transform: rotate({{ rotation }}deg);{% endif %}
+      }
     {% endif %}
   </style>
 </head>
@@ -89,21 +164,17 @@
   <div class="label">
     <h1>{{ brand_name }}</h1>
     <h2>{{ product_type }}</h2>
-
     {% if show_alcohol_content %}
       <div class="details">{{ alcohol_content }}% ALC./VOL.{% if proof %} ({{ proof }} proof){% endif %}</div>
     {% endif %}
-
     {% if net_contents %}
       <div class="details">{{ net_contents }}</div>
     {% endif %}
-
     <div class="bottler">
       DISTILLED AND BOTTLED BY<br>
       {{ brand_name | upper }}<br>
       {{ location or "LOUISVILLE, KENTUCKY" }}
     </div>
-
     {% if show_government_warning %}
       <div class="warning">
         <strong>GOVERNMENT WARNING:</strong> (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.

@@ -1,0 +1,22 @@
+{
+  "test_id": "09_serif_ornate",
+  "description": "Cinzel font - Roman-inspired high-contrast serif",
+  "expected_ocr": {
+    "brand_name": "Imperial Reserve",
+    "product_type": "Single Malt Scotch Whiskey",
+    "alcohol_content": 43,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Imperial Reserve",
+    "product_type": "Single Malt Scotch Whiskey",
+    "alcohol_content": 43,
+    "proof": 86,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high",
+    "font_style": "serif_ornate"
+  }
+}

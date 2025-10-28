@@ -45,7 +45,7 @@ test_cases:
     label_data:
       brand_name: "Craft Brewery"
       product_type: "IPA"
-      alcohol_content: null  # Not displayed on label
+      alcohol_content: null
       net_contents: "355 mL"
     display_options:
       show_government_warning: false
@@ -75,11 +75,11 @@ test_cases:
     form_submission:
       brand_name: "Coastal Wine Co"
       product_type: "Chardonnay"
-      alcohol_content: 12  # Intentional mismatch
+      alcohol_content: 12
       net_contents: "750 mL"
 
   - id: "05_low_quality_blurry"
-    description: "Low quality/blurry label to test OCR failure handling"
+    description: "Low quality/blurry label; failure expected"
     label_data:
       brand_name: "Mountain Vodka"
       product_type: "Premium Vodka"
@@ -87,16 +87,16 @@ test_cases:
       net_contents: "1 L"
     display_options:
       show_government_warning: true
-      quality: "low"  # Will apply blur filter
+      quality: "low"
       blur_amount: 5
-    expected_ocr:
-      brand_name: null  # OCR likely to fail
+    expected_ocr: # Expect OCR to fail on all fields
+      brand_name: null
       product_type: null
       alcohol_content: null
       net_contents: null
 
   - id: "06_partial_occlusion"
-    description: "Partially obscured label (edge case)"
+    description: "Partially obscured label; failure expected"
     label_data:
       brand_name: "Riverside Rum"
       product_type: "Spiced Rum"
@@ -105,13 +105,13 @@ test_cases:
     display_options:
       show_government_warning: true
       quality: "medium"
-      rotation: 15  # Slightly rotated
-      opacity: 0.7  # Slightly faded
-    expected_ocr:
-      brand_name: "Riverside Rum"
-      product_type: "Spiced Rum"
-      alcohol_content: 35
-      net_contents: "750 mL"
+      rotation: 15
+      opacity: 0.7
+    expected_ocr: # Expect OCR to fail on all fields
+      brand_name: null
+      product_type: null
+      alcohol_content: null
+      net_contents: null
 
   - id: "07_missing_net_contents"
     description: "Missing volume information"
@@ -128,3 +128,129 @@ test_cases:
       product_type: "London Dry Gin"
       alcohol_content: 42
       net_contents: null
+  
+  - id: "08_serif_difficult"
+    description: "Playfair Display font - elegant serif with tight spacing"
+    label_data:
+      brand_name: "Fancy Vodka"
+      product_type: "Premium Vodka"
+      alcohol_content: 40.0
+      proof: 80
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      show_alcohol_content: true
+      quality: "high"
+      font_style: "serif_difficult"
+    expected_ocr:
+      brand_name: "Fancy Vodka"
+      product_type: "Premium Vodka"
+      alcohol_content: 40
+      net_contents: "750 mL"
+
+  - id: "09_serif_ornate"
+    description: "Cinzel font - Roman-inspired high-contrast serif"
+    label_data:
+      brand_name: "Imperial Reserve"
+      product_type: "Single Malt Scotch Whiskey"
+      alcohol_content: 43
+      proof: 86
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+      font_style: "serif_ornate"
+    expected_ocr:
+      brand_name: "Imperial Reserve"
+      product_type: "Single Malt Scotch Whiskey"
+      alcohol_content: 43
+      net_contents: "750 mL"
+
+  - id: "10_serif_thin"
+    description: "Cormorant Garamond font - thin strokes, potential OCR confusion"
+    label_data:
+      brand_name: "Delicate Spirits"
+      product_type: "Artisanal Gin"
+      alcohol_content: 44.5
+      net_contents: "500 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+      font_style: "serif_thin"
+    expected_ocr:
+      brand_name: "Delicate Spirits"
+      product_type: "Artisanal Gin"
+      alcohol_content: 44.5
+      net_contents: "500 mL"
+
+  - id: "11_serif_display"
+    description: "Abril Fatface font - ultra-bold display serif for brand name only"
+    label_data:
+      brand_name: "Bold Statement"
+      product_type: "Tennessee Whiskey"
+      alcohol_content: 40
+      proof: 80
+      net_contents: "720 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+      font_style: "serif_display"
+    expected_ocr:
+      brand_name: "Bold Statement"
+      product_type: "Tennessee Whiskey"
+      alcohol_content: 40
+      net_contents: "720 mL"
+
+  - id: "12_serif_bodoni"
+    description: "Bodoni font - classic high-contrast, can cause character merging"
+    label_data:
+      brand_name: "Classic Distillery"
+      product_type: "Rye Whiskey"
+      alcohol_content: 46.0
+      proof: 92
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+      font_style: "serif_bodoni"
+    expected_ocr:
+      brand_name: "Classic Distillery"
+      product_type: "Rye Whiskey"
+      alcohol_content: 46
+      net_contents: "750 mL"
+
+  - id: "13_font_with_blur"
+    description: "Difficult font combined with blur; failure expected"
+    label_data:
+      brand_name: "Obscured Label"
+      product_type: "Craft Vodka"
+      alcohol_content: 40
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "medium"
+      font_style: "serif_difficult"
+      blur_amount: 3
+    expected_ocr: # Expect OCR to fail on all fieldsf
+      brand_name: null
+      product_type: null
+      alcohol_content: null
+      net_contents: null
+
+  - id: "14_font_with_contrast"
+    description: "High contrast serif making thin strokes harder to detect"
+    label_data:
+      brand_name: "Contrast Test"
+      product_type: "Premium Gin"
+      alcohol_content: 42
+      net_contents: "750 mL"
+    display_options:
+      show_government_warning: true
+      quality: "high"
+      font_style: "serif_thin"
+      contrast: 1.5  # Increase contrast
+    expected_ocr:
+      brand_name: "Contrast Test"
+      product_type: "Premium Gin"
+      alcohol_content: 42
+      net_contents: "750 mL"

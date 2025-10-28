@@ -1,6 +1,6 @@
 {
   "test_id": "05_low_quality_blurry",
-  "description": "Low quality/blurry label to test OCR failure handling",
+  "description": "Low quality/blurry label; failure expected",
   "expected_ocr": {
     "brand_name": null,
     "product_type": null,

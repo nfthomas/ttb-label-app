@@ -1,0 +1,22 @@
+{
+  "test_id": "12_serif_bodoni",
+  "description": "Bodoni font - classic high-contrast, can cause character merging",
+  "expected_ocr": {
+    "brand_name": "Classic Distillery",
+    "product_type": "Rye Whiskey",
+    "alcohol_content": 46,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Classic Distillery",
+    "product_type": "Rye Whiskey",
+    "alcohol_content": 46.0,
+    "proof": 92,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high",
+    "font_style": "serif_bodoni"
+  }
+}

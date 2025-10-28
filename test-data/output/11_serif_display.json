@@ -1,0 +1,22 @@
+{
+  "test_id": "11_serif_display",
+  "description": "Abril Fatface font - ultra-bold display serif for brand name only",
+  "expected_ocr": {
+    "brand_name": "Bold Statement",
+    "product_type": "Tennessee Whiskey",
+    "alcohol_content": 40,
+    "net_contents": "720 mL"
+  },
+  "form_submission": {
+    "brand_name": "Bold Statement",
+    "product_type": "Tennessee Whiskey",
+    "alcohol_content": 40,
+    "proof": 80,
+    "net_contents": "720 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "quality": "high",
+    "font_style": "serif_display"
+  }
+}

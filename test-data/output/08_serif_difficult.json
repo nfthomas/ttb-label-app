@@ -1,0 +1,23 @@
+{
+  "test_id": "08_serif_difficult",
+  "description": "Playfair Display font - elegant serif with tight spacing",
+  "expected_ocr": {
+    "brand_name": "Fancy Vodka",
+    "product_type": "Premium Vodka",
+    "alcohol_content": 40,
+    "net_contents": "750 mL"
+  },
+  "form_submission": {
+    "brand_name": "Fancy Vodka",
+    "product_type": "Premium Vodka",
+    "alcohol_content": 40.0,
+    "proof": 80,
+    "net_contents": "750 mL"
+  },
+  "display_options": {
+    "show_government_warning": true,
+    "show_alcohol_content": true,
+    "quality": "high",
+    "font_style": "serif_difficult"
+  }
+}
