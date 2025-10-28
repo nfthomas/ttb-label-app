@@ -1,22 +1,30 @@
 import io
 import logging
 
+import cv2
+import numpy as np
 import pytesseract
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
 
 def preprocess_image(image: Image.Image) -> Image.Image:
     """
-    Preprocess image for OCR: convert to grayscale and increase contrast.
+    Preprocess image for OCR: convert to grayscale, denoise, and enhance contrast.
     """
     # Convert to grayscale
     image = image.convert("L")
-    # Increase contrast
-    enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(2.0)
-    return image
+
+    np_image = np.array(image)
+
+    # Slight denoise and upscale (rescaled_2x)
+    np_image = cv2.resize(np_image, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+
+    # Light contrast boost
+    np_image = cv2.convertScaleAbs(np_image, alpha=1.3, beta=0)
+
+    return Image.fromarray(np_image)
 
 
 def extract_text_from_image(image_bytes: bytes) -> str:
@@ -28,7 +36,8 @@ def extract_text_from_image(image_bytes: bytes) -> str:
         processed_image = preprocess_image(image)
 
         # Extract text using Tesseract
-        text = pytesseract.image_to_string(processed_image)
+        config = "--psm 11 --oem 3"  # PSM 11 = sparse text, OEM 3 = LSTM only
+        text = pytesseract.image_to_string(processed_image, config=config)
 
         if not text.strip():
             raise ValueError("No text could be extracted from the image")
