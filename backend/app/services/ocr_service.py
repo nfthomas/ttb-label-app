@@ -39,19 +39,33 @@ def extract_text_from_image(image_bytes: bytes) -> str:
         # Preprocess image
         processed_image = preprocess_image(image)
 
-        # Extract text using Tesseract
-        config = "--psm 11 --oem 3"  # PSM 11 = sparse text, OEM 3 = LSTM only
-        text = pytesseract.image_to_string(processed_image, config=config)
+        # Run both OCR passes: --oem 3 = LSTM only
+        text_large = pytesseract.image_to_string(
+            processed_image,
+            # --psm 11 = Sparse text
+            config="--psm 11 --oem 3",
+        )
+        text_small = pytesseract.image_to_string(
+            processed_image,
+            # --psm 6 = Assume a single uniform block of text
+            config="--psm 6 --oem 3",
+        )
 
-        if not text.strip():
-            raise ValueError("No text could be extracted from the image")
+        text_large = text_large.strip().replace("\n", " ").replace("  ", " ")
+        text_small = text_small.strip().replace("\n", " ").replace("  ", " ")
 
-        # Clean and normalize text
-        cleaned_text = text.strip().replace("\n", " ").replace("  ", " ")
+        # Combine results (favor larger text when overlapping)
+        if not text_large and not text_small:
+            raise ValueError("No text could be extracted from the image.")
 
-        logger.debug(f"Extracted OCR text: {cleaned_text}")
+        if text_large and text_small:
+            combined = f"{text_large}\n{text_small}"
+        else:
+            combined = text_large or text_small
 
-        return cleaned_text
+        logger.debug(f"OCR combined result: {combined}")
+
+        return combined.strip()
 
     except Exception as e:
         logger.error(f"Error during OCR processing: {str(e)}")
