@@ -29,7 +29,18 @@ See the `justfile` for more tasks.
 
 ## OCR Choice
 
-Tesseract was chosen for its ease of integration into a standard FastAPI backend (including Docker deployment) as well as Python library support via `pytesseract`. 
+Tesseract was chosen for its ease of integration into a standard FastAPI backend (including Docker deployment) as well as Python library support via `pytesseract`.
+
+Adaptive OCR strategy: Each image is preprocessed (grayscale, contrast boost, upscaled) and processed through two Tesseract passes:
+
+- optimized for large, spaced text `psm 11`
+- optimized for dense small text `psm 6`
+
+Then their outputs are merged for higher overall accuracy across varied labels. Running both captures both headers and fine print that a single mode often misses, albeit with added computational cost. 
+
+### Future Improvements
+
+Utilize region-based detection (using opencv contours to pick PSM per zone) or confidence-weighted merging based on word-level confidence scores from Tesseract. Ideally multiple passes per image are avoided.
 
 ## Backend Architecture
 
