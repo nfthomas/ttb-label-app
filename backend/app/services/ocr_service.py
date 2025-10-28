@@ -22,7 +22,7 @@ def preprocess_image(image: Image.Image) -> Image.Image:
     np_image = cv2.resize(np_image, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
 
     # Apply CLAHE to normalize lighting and contrast
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     np_image = clahe.apply(np_image)
 
     # Light contrast boost
