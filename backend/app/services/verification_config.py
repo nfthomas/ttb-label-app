@@ -56,9 +56,9 @@ class AlcoholContent:
     @staticmethod
     def get_patterns(content_str: str) -> List[Pattern]:
         return [
-            re.compile(rf"{content_str}\s*%"),
-            re.compile(rf"{content_str}\s*%\s*alc\.?\s*/\s*vol\.?"),
-            re.compile(rf"alc\.?\s*{content_str}\s*%\s*by\s*vol\.?"),
+            re.compile(rf"{content_str}(?:\.0+)?\s*%"),
+            re.compile(rf"{content_str}(?:\.0+)?\s*%\s*alc\.?\s*/\s*vol\.?"),
+            re.compile(rf"alc\.?\s*{content_str}(?:\.0+)?\s*%\s*by\s*vol\.?"),
         ]
 
     # Pattern for finding any alcohol content mention for close matches
