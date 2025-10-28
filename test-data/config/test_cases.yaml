@@ -231,7 +231,7 @@ test_cases:
       quality: "medium"
       font_style: "serif_difficult"
       blur_amount: 3
-    expected_ocr: # Expect OCR to fail on all fieldsf
+    expected_ocr: # Expect OCR to fail on all fields
       brand_name: null
       product_type: null
       alcohol_content: null
