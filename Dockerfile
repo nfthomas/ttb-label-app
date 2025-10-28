@@ -21,8 +21,8 @@ WORKDIR /app/backend
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ---- Expose App Port ----
-EXPOSE 8000
+# ---- Expose default port (for documentation only) ----
+EXPOSE 10000
 
-# ---- Start FastAPI ----
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# ---- Start FastAPI using dynamic Render PORT ----
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}"]
