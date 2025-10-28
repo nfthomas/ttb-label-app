@@ -278,6 +278,31 @@ const getImageDimensions = (file) => {
   });
 };
 
+const checkImageQuality = async (file, dimensions) => {
+  const { width, height } = dimensions;
+  const fileSizeInKB = file.size / 1024;
+  const messages = [];
+
+  const MIN_RESOLUTION = 600; // Minimum pixels on the shortest side
+  const MIN_FILE_SIZE_KB = 20; // Minimum file size in kilobytes
+
+  if (width < MIN_RESOLUTION || height < MIN_RESOLUTION) {
+    messages.push(
+      `Image resolution is low (${width}x${height}px). This may affect OCR accuracy.`
+    );
+  }
+
+  if (fileSizeInKB < MIN_FILE_SIZE_KB) {
+    messages.push(
+      `File size is very small (${Math.round(
+        fileSizeInKB
+      )} KB). This may indicate a low-quality or simple image.`
+    );
+  }
+
+  return messages.join(' ');
+};
+
 const handleFileSelect = async (event) => {
   const file = event.files[0];
   imageWarning.value = '';
@@ -313,9 +338,6 @@ const clearImage = () => {
   selectedImage.value = null;
   imageDimensions.value = null;
   imageWarning.value = '';
-  if (fileUpload.value) {
-    fileUpload.value.clear();
-  }
 };
 
 // Form validation and submission
