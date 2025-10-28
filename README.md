@@ -40,7 +40,7 @@ Then their outputs are merged for higher overall accuracy across varied labels. 
 
 ### Future Improvements
 
-Utilize region-based detection (using opencv contours to pick PSM per zone) or confidence-weighted merging based on word-level confidence scores from Tesseract. Ideally multiple passes per image are avoided.
+Ideally multiple passes per image are avoided. This could be achieved with region-based detection (using opencv contours to pick PSM per zone) or confidence-weighted merging based on word-level confidence scores from Tesseract. Some attempts at these optimizations did not consistently produce expected results, so the thorough/slower algorithm was favored for this initial solution.
 
 ## Backend Architecture
 
